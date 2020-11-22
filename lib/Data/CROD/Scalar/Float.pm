@@ -8,7 +8,12 @@ use base 'Data::CROD::Scalar::Huge';
 # native machine floating point format. This is not guaranteed to
 # actually be IEEE754. Yuck. Need to find a comprehensible spec and
 # a comprehensive text suite and implement my own.
-use Data::IEEE754 qw(unpack_double_be);
+use Data::IEEE754 qw(unpack_double_be pack_double_be);
+
+sub _create {
+    my($class, %args) = @_;
+    return pack_double_be($args{data});
+}
 
 sub _decode_word {
     my($class, $word) = @_;

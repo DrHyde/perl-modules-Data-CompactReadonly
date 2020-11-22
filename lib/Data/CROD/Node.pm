@@ -21,6 +21,11 @@ sub _create {
     my $type_byte  = $class->_type_byte_from_class($type_class);
     
     print $fh $type_byte;
+    print $fh $type_class->_create(
+        fh       => $fh,
+        ptr_size => $ptr_size,
+        data     => $data
+    );
 }
 
 sub _db_base {
@@ -37,7 +42,8 @@ sub _node_at_current_offset {
 
 sub _type_map_from_data {
     my($class, $data) = @_;
-    return !defined($data) ? 'Scalar::Null' :
+    return !defined($data)                              ? 'Scalar::Null' :
+           $data =~ /^-?[0-9]+\.[0-9]+(e[+-]?[0-9]+)?$/ ? 'Scalar::Float' :
            die("Can't yet create from '$data'\n");
 }
 
@@ -72,6 +78,7 @@ sub _subtype_by_bits {
         (map { $_ => 'Reserved' } (0b1100 .. 0b1111))
     )
 }
+
 sub _type_map_from_byte {
     my $class   = shift;
     my $in_type = ord(shift());
