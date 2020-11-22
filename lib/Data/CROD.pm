@@ -24,7 +24,10 @@ and for files to be much smaller.
 
 =head2 create
 
-Not yet implemented
+Takes two arguments, the name of file into which to write a database, and some
+data. The data can be undef, a number, some text, or a reference to an array
+or hash that in turn consists of undefs, numbers, text, references to arrays or
+hashes, and so on ad infinitum.
 
 =head2 read
 
@@ -113,11 +116,28 @@ Globs, Regexes, References (except to Arrays and Dictionaries)
 =cut
 
 sub create {
-    my($class, %args) = @_;
+    my($class, $file, $data) = @_;
 
-    $args{version} ||= 0; # default to latest available?
+    my $version = 0;
 
-    # return $class->create(file => $args{file}, data => $args{data});
+    PTR_SIZE: foreach my $ptr_size (1 .. 8) {
+        my $byte5 = chr(($version << 3) + $ptr_size - 1);
+        open(my $fh, '>:unix', $file) || die("Can't write $file: $! \n");
+        print $fh "CROD$byte5";
+        try {
+            Data::CROD::Node->_create(
+                fh       => $fh,
+                ptr_size => $ptr_size,
+                data     => $data
+            );
+            last PTR_SIZE;
+        } catch {
+            if($_ =~ /pointer out of range/) {
+                next PTR_SIZE
+            }
+            die($_);
+        }
+    }
 }
 
 sub read {
@@ -148,7 +168,12 @@ sub read {
     my $ptr_size = (ord($byte5) & 0b00000111) + 1;
     die("$class: $file header invalid: bad version\n") if($version == 0b11111);
 
-    return Data::CROD::Node->_init(file_format_version => $version, ptr_size => $ptr_size, fh => $fh, db_base => $original_file_pointer);
+    return Data::CROD::Node->_init(
+        file_format_version => $version,
+        ptr_size            => $ptr_size,
+        fh                  => $fh,
+        db_base             => $original_file_pointer
+    );
 }
 
 1;
