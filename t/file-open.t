@@ -21,6 +21,7 @@ close($fh);
 is(Data::CROD->read($filename), 65, "can read a Byte from root node when given a filename");
 
 open($fh, '<', $filename) || die("Can'tread $filename: $!\n");
+binmode($fh);
 is(Data::CROD->read($fh), 65, "can read from file handle");
 close($fh);
 
