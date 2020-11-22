@@ -1,0 +1,9 @@
+language: perl
+matrix:
+  include:
+    - perl: "5.20"
+      dist: trusty
+      before_install:
+        - cpanm --quiet --notest Devel::Cover::Report::Coveralls
+      script: "perl Makefile.PL && make && cover -test -report coveralls"
+sudo: false
