@@ -16,9 +16,22 @@ sub _init {
     return $value;
 }
 
+sub _create {
+    my($class, %args) = @_;
+    (my $scalar_type = $class) =~ s/Text/Scalar/;
+    my $text = $class->_text_to_bytes($args{data});
+    return $scalar_type->_create(%args, data => length($text)).
+           $text;
+}
+
 sub _bytes_to_text {
     my($invocant, $bytes) = @_;
     return decode('utf-8', $bytes);
+}
+
+sub _text_to_bytes {
+    my($invocant,$text) = @_;
+    return encode('utf-8', $text);
 }
 
 1;

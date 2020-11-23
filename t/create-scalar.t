@@ -40,7 +40,26 @@ foreach my $value (5.1413, 81.72e-50, -1.37e100/3) {
     is($data = Data::CROD->read($fh), $value, "can create a Float file ($value)");
 }
 
+foreach my $length (1, 1000, 100000, 0x1000000) {
+    #               ^  ^     ^       ^
+    #        Byte --+  |     |       +-- Long 
+    #       Short -----+     +---------- Medium
+    my $filesize = 5 + 1 + (1 + int(log($length) / log(256))) + $length;
+    my $value = 'x' x $length;
+    Data::CROD->create($filename, $value);
+    open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
+    is($data = Data::CROD->read($fh), $value, "can create an ASCII Text file ($length chars)");
+        is((stat($filename))[7], $filesize, "... file is expected size $filesize");
+}
 
+foreach my $length (1, 1000) {
+    my $filesize = 5 + 1 + (1 + int(log(9 * $length) / log(256))) + 9 * $length;
+    my $value = "\x{5317}\x{4eac}\x{5e02}" x $length;
+    Data::CROD->create($filename, $value);
+    open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
+    is($data = Data::CROD->read($fh), $value, "can create a non-ASCII Text file ($length times three chars, each 3 utf-8 bytes)");
+        is((stat($filename))[7], $filesize, "... file is expected size $filesize");
+}
 
 
 

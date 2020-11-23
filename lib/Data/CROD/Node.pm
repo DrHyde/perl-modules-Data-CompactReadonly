@@ -5,6 +5,8 @@ use strict;
 
 use Fcntl qw(:seek);
 
+use Data::CROD::Text;
+
 # assumes the $fh is pointing at the first data byte, having just read the header
 sub _init {
     my($class, %args) = @_;
@@ -42,6 +44,11 @@ sub _node_at_current_offset {
     return $type_class->_init(parent => $self, offset => tell($self->_fh()) - $self->_db_base());
 }
 
+sub _bytes_required_for_int {
+    my($class, $int) = @_;
+    return 1 + int(log($int) / log(256));
+}
+
 sub _type_map_from_data {
     my($class, $data) = @_;
     return !defined($data)
@@ -50,13 +57,24 @@ sub _type_map_from_data {
              ? 'Scalar::Float' :
            $data =~ /^(-?)([0-9]+)$/ 
              ? do {
-                 my $bytes = 1 + int(log($2) / log(256));
+                 my $bytes = $class->_bytes_required_for_int($2);
                  $bytes == 1 ? 'Scalar::'.($1 ? 'Negative' : '').'Byte' :
                  $bytes == 2 ? 'Scalar::'.($1 ? 'Negative' : '').'Short' :
                  $bytes == 3 ? 'Scalar::'.($1 ? 'Negative' : '').'Medium' :
                  $bytes == 4 ? 'Scalar::'.($1 ? 'Negative' : '').'Long' :
                  $bytes <  9 ? 'Scalar::'.($1 ? 'Negative' : '').'Huge' :
                                'Scalar::Float'
+             } :
+           !ref($data)
+             ? do {
+                 my $bytes = $class->_bytes_required_for_int(
+                     length(Data::CROD::Text->_text_to_bytes($data))
+                 );
+                 $bytes == 1 ? 'Text::Byte' :
+                 $bytes == 2 ? 'Text::Short' :
+                 $bytes == 3 ? 'Text::Medium' :
+                 $bytes == 4 ? 'Text::Long' :
+                               die("$class: Invalid: Text too long");
              } :
            die("Can't yet create from '$data'\n");
 }
