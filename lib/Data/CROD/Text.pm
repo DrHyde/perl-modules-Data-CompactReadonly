@@ -18,10 +18,13 @@ sub _init {
 
 sub _create {
     my($class, %args) = @_;
+    my $fh = $args{fh};
+    $class->_stash_already_seen(%args);
     (my $scalar_type = $class) =~ s/Text/Scalar/;
     my $text = $class->_text_to_bytes($args{data});
-    return $scalar_type->_create(%args, data => length($text)).
-           $text;
+    print $fh $class->_type_byte_from_class().
+              $scalar_type->_get_bytes_from_word(length($text)).
+              $text;
 }
 
 sub _bytes_to_text {

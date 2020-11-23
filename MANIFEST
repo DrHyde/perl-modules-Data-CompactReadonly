@@ -46,3 +46,4 @@ t/root-node-scalar.t
 t/root-node-text.t
 t/coverage.sh
 t/create-scalar.t
+t/create-collection.t

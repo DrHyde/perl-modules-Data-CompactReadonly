@@ -18,18 +18,24 @@ sub _create {
     my($class, %args) = @_;
     die("fell through to Data::CROD::Node::_create when creating a $class\n")
         if($class ne __PACKAGE__);
-    my($fh, $ptr_size, $data, $next_free) = @args{qw(fh ptr_size data next_free)};
-    $next_free = tell($fh) unless(defined($next_free));
 
-    my $type_class = $class->_type_class(from_data => $data);
-    my $type_byte  = $class->_type_byte_from_class($type_class);
-    
-    print $fh $type_byte;
-    print $fh $type_class->_create(
-        fh       => $fh,
-        ptr_size => $ptr_size,
-        data     => $data
-    );
+    $class->_type_class(from_data => $args{data})->_create(%args);
+}
+
+sub _stash_already_seen {
+    my($class, %args) = @_;
+    if(defined($args{data})) {
+        $args{already_seen}->{d}->{$args{data}} = tell($args{fh});
+    } else {
+        $args{already_seen}->{u} = tell($args{fh});
+    }
+}
+
+sub _get_already_seen {
+    my($class, %args) = @_;
+    return defined($args{data})
+        ? $args{already_seen}->{d}->{$args{data}}
+        : $args{already_seen}->{u};
 }
 
 sub _db_base {
@@ -46,7 +52,18 @@ sub _node_at_current_offset {
 
 sub _bytes_required_for_int {
     my($class, $int) = @_;
+    return 1 if($int == 0);
     return 1 + int(log($int) / log(256));
+}
+
+sub _sub_type_for_collection_of_length {
+    my($class, $length) = @_;
+    my $bytes = $class->_bytes_required_for_int($length);
+    return $bytes == 1 ? 'Byte' :
+           $bytes == 2 ? 'Short' :
+           $bytes == 3 ? 'Medium' :
+           $bytes == 4 ? 'Long' :
+                         undef;
 }
 
 sub _type_map_from_data {
@@ -66,26 +83,25 @@ sub _type_map_from_data {
                                'Scalar::Float'
              } :
            !ref($data)
-             ? do {
-                 my $bytes = $class->_bytes_required_for_int(
-                     length(Data::CROD::Text->_text_to_bytes($data))
-                 );
-                 $bytes == 1 ? 'Text::Byte' :
-                 $bytes == 2 ? 'Text::Short' :
-                 $bytes == 3 ? 'Text::Medium' :
-                 $bytes == 4 ? 'Text::Long' :
-                               die("$class: Invalid: Text too long");
-             } :
+             ? 'Text::'.do {
+                            $class->_sub_type_for_collection_of_length(
+                                length(Data::CROD::Text->_text_to_bytes($data))
+                            ) || die("$class: Invalid: Text too long");
+                        } :
+           ref($data) eq 'ARRAY'
+             ? 'Array::'.do { $class->_sub_type_for_collection_of_length(1 + $#{$data}) ||
+                              die("$class: Invalid: Array too long");
+                         } :
            die("Can't yet create from '$data'\n");
 }
 
 sub _type_byte_from_class {
-    my($my_class, $node_class) = @_;
-    $node_class =~ /.*::([^:]+)::([^:]+)/;
+    my $class = shift;
+    $class =~ /.*::([^:]+)::([^:]+)/;
     my($type, $subtype) = ($1, $2);
     return chr(
-        ({ reverse($my_class->_type_by_bits())    }->{$type}    << 6) +
-        ({ reverse($my_class->_subtype_by_bits()) }->{$subtype} << 2)
+        ({ reverse($class->_type_by_bits())    }->{$type}    << 6) +
+        ({ reverse($class->_subtype_by_bits()) }->{$subtype} << 2)
     );
 }
 
@@ -130,6 +146,7 @@ sub _type_class {
     my $map_method = "_type_map_$from";
     my $type_name = "Data::CROD::".$class->$map_method($in_type);
     eval "use $type_name";
+    die($@) if($@);
     return $type_name;
 }
 
@@ -140,11 +157,22 @@ sub _bytes_at_current_offset {
     return $data;
 }
 
+# this is a monstrous evil
+# TODO instantiate classes when writing!
 sub _seek {
     my $self = shift;
-    my $to   = shift;
-    seek($self->_fh(), $self->_db_base() + $to, SEEK_SET);
+    if($#_ == 0) { # for when reading
+        my $to   = shift;
+        seek($self->_fh(), $self->_db_base() + $to, SEEK_SET);
+    } else { # for when writing
+        my %args = @_;
+        die($self->_ptr_blown())
+            if($args{pointer} >= 256 ** $args{ptr_size});
+        seek($args{fh}, $args{pointer}, SEEK_SET);
+    }
 }
+
+sub _ptr_blown { "pointer out of range" }
 
 sub _offset {
     my $self = shift;

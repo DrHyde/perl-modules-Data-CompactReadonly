@@ -14,6 +14,35 @@ sub _init {
     }, $class);
 }
 
+sub _create {
+    my($class, %args) = @_;
+    my $fh = $args{fh};
+    $class->_stash_already_seen(%args);
+    (my $scalar_type = $class) =~ s/Array/Scalar/;
+
+    print $fh $class->_type_byte_from_class().
+              $scalar_type->_get_bytes_from_word(1 + $#{$args{data}});
+
+    # first write an empty pointer table
+    my $table_start_ptr = tell($fh);
+    print $fh "\x00" x $args{ptr_size}
+        foreach(0 .. $#{$args{data}});
+    my $next_free_ptr = tell($fh); 
+
+    foreach my $index (0 .. $#{$args{data}}) {
+        my $this_data = $args{data}->[$index];
+        $class->_seek(%args, pointer => $table_start_ptr + $index * $args{ptr_size});
+        if(my $ptr = $class->_get_already_seen(%args, data => $this_data)) {
+            print $fh $class->_encode_ptr(%args, pointer => $ptr);
+        } else {
+            print $fh $class->_encode_ptr(%args, pointer => $next_free_ptr);
+            $class->_seek(%args, pointer => $next_free_ptr);
+            Data::CROD::Node->_create(%args, data => $this_data);
+            $next_free_ptr = tell($fh);
+        }
+    }
+}
+
 sub element {
     my($self, $element) = @_;
     no warnings 'numeric';

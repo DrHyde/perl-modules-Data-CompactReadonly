@@ -25,15 +25,32 @@ sub _decode_word {
 
 sub _create {
     my($class, %args) = @_;
-    my $word = abs($args{data});
+    my $fh = $args{fh};
+    $class->_stash_already_seen(%args);
+
+    print $fh $class->_type_byte_from_class().
+              $class->_get_bytes_from_word(abs($args{data}));
+}
+
+sub _get_bytes_from_word {
+    my($class, $word) = @_;
+    return $class->__get_bytes_from_word($word, $class->_num_bytes());
+}
+
+sub __get_bytes_from_word {
+    my($class, $word, $num_bytes) = @_;
 
     my $bytes = '';
     while($word) {
         $bytes = chr($word & 0xff).$bytes;
         $word >>= 8;
     }
-    # zero-pad if needed
-    $bytes = (chr(0) x ($class->_num_bytes() - length($bytes))).$bytes;
+    # zero-pad if needed: guarded by an 'if' in case we're going
+    # to blow a pointer over size - that error will be caught when
+    # we try to seek to it to write the data it points to
+    $bytes = (chr(0) x ($num_bytes - length($bytes))).$bytes
+        if(length($bytes) < $num_bytes);
+
     return $bytes;
 }
 

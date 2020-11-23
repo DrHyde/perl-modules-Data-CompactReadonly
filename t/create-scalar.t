@@ -61,9 +61,4 @@ foreach my $length (1, 1000) {
         is((stat($filename))[7], $filesize, "... file is expected size $filesize");
 }
 
-
-
-
-# is($data->ptr_size(), 1, "tiny file has pointer size 1");
-
 done_testing;

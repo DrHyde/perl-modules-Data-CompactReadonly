@@ -124,19 +124,19 @@ sub create {
         my $byte5 = chr(($version << 3) + $ptr_size - 1);
         open(my $fh, '>:unix', $file) || die("Can't write $file: $! \n");
         print $fh "CROD$byte5";
-        try {
+        my $already_seen = {};
+        eval {
             Data::CROD::Node->_create(
-                fh       => $fh,
-                ptr_size => $ptr_size,
-                data     => $data
+                fh           => $fh,
+                ptr_size     => $ptr_size,
+                data         => $data,
+                already_seen => $already_seen
             );
-            last PTR_SIZE;
-        } catch {
-            if($_ =~ /pointer out of range/) {
-                next PTR_SIZE
-            }
-            die($_);
-        }
+        };
+        if($@ && index($@, Data::CROD::Node->_ptr_blown()) != -1) {
+            next PTR_SIZE;
+        } elsif($@) { die($@); }
+        last PTR_SIZE;
     }
 }
 

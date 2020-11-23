@@ -12,7 +12,10 @@ use Data::IEEE754 qw(unpack_double_be pack_double_be);
 
 sub _create {
     my($class, %args) = @_;
-    return pack_double_be($args{data});
+    my $fh = $args{fh};
+    $class->_stash_already_seen(%args);
+    print $fh $class->_type_byte_from_class().
+              pack_double_be($args{data});
 }
 
 sub _decode_word {

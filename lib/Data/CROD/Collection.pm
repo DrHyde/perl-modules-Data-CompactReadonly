@@ -29,6 +29,14 @@ sub _scalar_type_bytes {
     return $self->_numeric_type_for_length()->_num_bytes();
 }
 
+sub _encode_ptr {
+    my($class, %args) = @_;
+    return Data::CROD::Scalar->__get_bytes_from_word(
+        $args{pointer}, 
+        $args{ptr_size}
+    );
+}
+
 sub _decode_ptr {
     goto &Data::CROD::Scalar::_decode_word;
 }
