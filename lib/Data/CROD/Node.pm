@@ -14,6 +14,8 @@ sub _init {
 
 sub _create {
     my($class, %args) = @_;
+    die("fell through to Data::CROD::Node::_create when creating a $class\n")
+        if($class ne __PACKAGE__);
     my($fh, $ptr_size, $data, $next_free) = @args{qw(fh ptr_size data next_free)};
     $next_free = tell($fh) unless(defined($next_free));
 
@@ -42,8 +44,20 @@ sub _node_at_current_offset {
 
 sub _type_map_from_data {
     my($class, $data) = @_;
-    return !defined($data)                              ? 'Scalar::Null' :
-           $data =~ /^-?[0-9]+\.[0-9]+(e[+-]?[0-9]+)?$/ ? 'Scalar::Float' :
+    return !defined($data)
+             ? 'Scalar::Null' :
+           $data =~ /^-?[0-9]+\.[0-9]+(e[+-]?[0-9]+)?$/
+             ? 'Scalar::Float' :
+           $data =~ /^(-?)([0-9]+)$/ 
+             ? do {
+                 my $bytes = 1 + int(log($2) / log(256));
+                 $bytes == 1 ? 'Scalar::'.($1 ? 'Negative' : '').'Byte' :
+                 $bytes == 2 ? 'Scalar::'.($1 ? 'Negative' : '').'Short' :
+                 $bytes == 3 ? 'Scalar::'.($1 ? 'Negative' : '').'Medium' :
+                 $bytes == 4 ? 'Scalar::'.($1 ? 'Negative' : '').'Long' :
+                 $bytes <  9 ? 'Scalar::'.($1 ? 'Negative' : '').'Huge' :
+                               'Scalar::Float'
+             } :
            die("Can't yet create from '$data'\n");
 }
 

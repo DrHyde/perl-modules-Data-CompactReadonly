@@ -23,4 +23,18 @@ sub _decode_word {
     return $value;
 }
 
+sub _create {
+    my($class, %args) = @_;
+    my $word = abs($args{data});
+
+    my $bytes = '';
+    while($word) {
+        $bytes = chr($word & 0xff).$bytes;
+        $word >>= 8;
+    }
+    # zero-pad if needed
+    $bytes = (chr(0) x ($class->_num_bytes() - length($bytes))).$bytes;
+    return $bytes;
+}
+
 1;
