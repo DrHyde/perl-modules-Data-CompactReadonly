@@ -23,9 +23,6 @@ is(Data::CROD->read($fh), 'hippo', "can read a Text with Medium (24 bits) length
 open($fh, '<', \"$header_bytes${b00011000}\x00\x00\x00\x05hippo");
 is(Data::CROD->read($fh), 'hippo', "can read a Text with Long (32 bits) length");
 
-open($fh, '<', \"$header_bytes${b00100000}\x00\x00\x00\x00\x00\x00\x00\x05hippo");
-is(Data::CROD->read($fh), 'hippo', "can read a Text with Huge (64 bits) length");
-
 foreach my $length_type (0b000, 0b001, 0b010, 0b011, 0b100) {
     my $type = chr(($length_type << 3) + 0b100);
     my $binary = sprintf('0b%08b', ord($type));

@@ -38,7 +38,6 @@ my $ARRAYBYTE   = $b01000000;
 my $ARRAYSHORT  = $b01001000;
 my $ARRAYMEDIUM = $b01010000;
 my $ARRAYLONG   = $b01011000;
-my $ARRAYHUGE   = $b01100000;
 my $TEXTBYTE    = $b00000000;
 my $DICTBYTE    = $b10000000;
 my $BYTE        = $b11000000;
@@ -139,17 +138,17 @@ is($array->id(), $array->element(4)->element(4)->id(),
 
 # at this point we've tested Array::Byte and ::Short, and 1 and 2 byte
 # pointers. We now test 3, 4, and 8 byte pointers (can't be arsed with
-# 5/6/7, they'll obviously work) and Array::Medium, ::Long and ::Huge.
-# We've also fetched all types from the array except Dictionaries
+# 5/6/7, they'll obviously work if 8 works) and Array::Medium and
+# Array::Long. We've also fetched all types from the array except Dictionaries
 
 open($fh, '<', \(
     "CROD${b00000010}".                           # 0x00 pointers are Mediums
-    "$ARRAYHUGE\x00\x00\x00\x00\x00\x00\x00\x01". # 0x05 array has 1 member
-    "\x00\x00\x11".                               # 0x0e
-    "$BYTE\x09"                                   # 0x11
+    "$ARRAYLONG\x00\x00\x00\x01".                 # 0x05 array has 1 member
+    "\x00\x00\x0d".                               # 0x0a
+    "$BYTE\x09"                                   # 0x0d
 ));
 $array = Data::CROD->read($fh);
-isa_ok($array, 'Data::CROD::Array::Huge');
+isa_ok($array, 'Data::CROD::Array::Long');
 is($array->count(), 1, "1 element array");
 is($array->_ptr_size(), 3, "3 byte pointers");
 is($array->element(0), 9, "can fetch");

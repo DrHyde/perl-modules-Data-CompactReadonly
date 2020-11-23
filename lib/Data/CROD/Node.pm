@@ -103,7 +103,7 @@ sub _type_map_from_byte {
     die(sprintf("$class: Invalid type: 0b%08b: Reserved\n", $in_type))
         if($scalar_type eq 'Reserved');
     die(sprintf("$class: Invalid type: 0b%08b: length $scalar_type\n", $in_type))
-        if($type ne 'Scalar' && $scalar_type =~ /^(Null|Float|Negative)/);
+        if($type ne 'Scalar' && $scalar_type =~ /^(Null|Float|Negative|Huge)/);
     return join('::', $type, $scalar_type);
 }
 
