@@ -100,7 +100,7 @@ my $hash = {
     # header                          5 bytes
     # OMGADICT                        1 byte
     # number of elements (in Byte)    1 byte
-    # 12 pairs of pointers         #  24 bytes
+    # 17 pairs of pointers         #  34 bytes
     float  => 3.14,                #  7 bytes for key, 9 bytes for value
     byte   => 65,                  #  6 bytes for key, 2 bytes for value
     short  => 65534,               #  7 bytes for key, 3 bytes for value
@@ -110,18 +110,22 @@ my $hash = {
     array  => [],                  #  7 bytes for key, 2 bytes for value 
     dict   => {},                  #  6 bytes for key, 2 bytes for value
     null   => undef,               #  6 bytes for key, 1 byte for value
-    # 119 bytes to this point
     text      => 'hi mum!',        #  6 bytes for key, 9 bytes for value (Text::Byte)
     'hi mum!' => 'hi mum!',        #     free!!! storage
+    "\x{5317}\x{4eac}\x{5e02}" => 'Beijing', # 11 bytes for key, 9 bytes for value
+    'Beijing' => "\x{5317}\x{4eac}\x{5e02}", #     free storage
+    2      => 65,                  #  2 bytes for key (Byte), free storage for value
+    900    => 65,                  #  3 bytes for key (Short), free storage for value
+    6.28   => 65,                  #  9 bytes for key (Float), free storage for value
     # the last element in the hash, cos its key sorts last
-    zzlongtext => 'z' x 300        # 12 bytes for key, 303 for value (Text::Short)
-    # 457 bytes total
+    zzlongtext => 'z' x 300,       # 12 bytes for key, 303 for value (Text::Short)
+    # 501 bytes total
 };
 Data::CROD->create($filename, $hash);
 open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
 isa_ok($data = Data::CROD->read($fh), 'Data::CROD::Dictionary::Byte',
     "got a Dictionary::Byte");
-is($data->count(), 12, "12 entries");
+is($data->count(), 17, "17 entries");
 is($data->_ptr_size(), 1, "pointers are 1 byte");
 is($data->element('float'),      3.14,        "read a Float");
 is($data->element('byte'),       65,          "read a Byte");
@@ -139,9 +143,12 @@ is($embedded_array->count(), 0, "array is empty");
 isa_ok(my $embedded_dict = $data->element('dict'), 'Data::CROD::Dictionary::Byte',
     "read a dictionary from the Dictionary");
 is($embedded_dict->count(), 0, "dict is empty");
-is((stat($filename))[7], 457, "file size is correct");
+is($data->element("\x{5317}\x{4eac}\x{5e02}"),
+    "Beijing", "non-ASCII keys work");
+is($data->element('Beijing'), "\x{5317}\x{4eac}\x{5e02}",
+    "non-ASCII values work");
+is((stat($filename))[7], 501, "file size is correct");
 
-fail("FIXME add tests for non-ASCII keys and values; caching of the same; numeric keys");
 fail("FIXME add more data after zzlongtext to force a pointer overflow");
 fail("FIXME add tests for absurd data structures");
 
