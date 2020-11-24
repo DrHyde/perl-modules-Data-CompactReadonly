@@ -92,6 +92,10 @@ sub _type_map_from_data {
              ? 'Array::'.do { $class->_sub_type_for_collection_of_length(1 + $#{$data}) ||
                               die("$class: Invalid: Array too long");
                          } :
+           ref($data) eq 'HASH'
+             ? 'Dictionary::'.do { $class->_sub_type_for_collection_of_length(scalar(keys %{$data})) ||
+                                   die("$class: Invalid: Dictionary too long");
+                         } :
            die("Can't yet create from '$data'\n");
 }
 

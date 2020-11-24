@@ -29,6 +29,11 @@ data. The data can be undef, a number, some text, or a reference to an array
 or hash that in turn consists of undefs, numbers, text, references to arrays or
 hashes, and so on ad infinitum.
 
+This method may be very slow. It constructs a file by making lots
+of little writes and seek()ing all over the place. And it doesn't do anything clever to figure out what pointer size to use, it just tries the shortest first, and then if that's not enough tries again, and again, bigger each time. See L<Data::CROD::Format> for more on pointer sizes.
+
+And this method may eat B<lots> of memory. It keeps a cache of everything it has seen while building your database, so that it can re-use data by just pointing at it instead of writing multiple copies of the same data into the file.
+
 =head2 read
 
 Takes a single argument, which is a filename or an already open file handle. If

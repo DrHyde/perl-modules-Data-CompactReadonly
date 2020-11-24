@@ -25,8 +25,7 @@ sub _create {
 
     # first write an empty pointer table
     my $table_start_ptr = tell($fh);
-    print $fh "\x00" x $args{ptr_size}
-        foreach(0 .. $#{$args{data}});
+    print $fh "\x00" x $args{ptr_size} x (1 + $#{$args{data}});
     my $next_free_ptr = tell($fh); 
 
     foreach my $index (0 .. $#{$args{data}}) {

@@ -89,4 +89,60 @@ is($data->element(12)->element(12)->element(11)->id(),
 #   two for the empty array
 is((stat($filename))[7], 317 + 2 + 13 + 2, "file size is correct");
 
+Data::CROD->create($filename, {});
+open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
+isa_ok($data = Data::CROD->read($fh), 'Data::CROD::Dictionary::Byte',
+    "got a Dictionary::Byte");
+is($data->count(), 0, "it's empty");
+is($data->_ptr_size(), 1, "pointers are 1 byte");
+
+my $hash = {
+    # header                          5 bytes
+    # OMGADICT                        1 byte
+    # number of elements (in Byte)    1 byte
+    # 12 pairs of pointers         #  24 bytes
+    float  => 3.14,                #  7 bytes for key, 9 bytes for value
+    byte   => 65,                  #  6 bytes for key, 2 bytes for value
+    short  => 65534,               #  7 bytes for key, 3 bytes for value
+    medium => 65536,               #  8 bytes for key, 4 bytes for value
+    long   => 0x1000000,           #  6 bytes for key, 5 bytes for value
+    huge   => 0xffffffff1,         #  6 bytes for key, 9 bytes for value
+    array  => [],                  #  7 bytes for key, 2 bytes for value 
+    dict   => {},                  #  6 bytes for key, 2 bytes for value
+    null   => undef,               #  6 bytes for key, 1 byte for value
+    # 119 bytes to this point
+    text      => 'hi mum!',        #  6 bytes for key, 9 bytes for value (Text::Byte)
+    'hi mum!' => 'hi mum!',        #     free!!! storage
+    # the last element in the hash, cos its key sorts last
+    zzlongtext => 'z' x 300        # 12 bytes for key, 303 for value (Text::Short)
+    # 457 bytes total
+};
+Data::CROD->create($filename, $hash);
+open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
+isa_ok($data = Data::CROD->read($fh), 'Data::CROD::Dictionary::Byte',
+    "got a Dictionary::Byte");
+is($data->count(), 12, "12 entries");
+is($data->_ptr_size(), 1, "pointers are 1 byte");
+is($data->element('float'),      3.14,        "read a Float");
+is($data->element('byte'),       65,          "read a Byte");
+is($data->element('short'),      65534,       "read a Short");
+is($data->element('medium'),     65536,       "read a Medium");
+is($data->element('long'),       0x1000000,   "read a Long");
+is($data->element('huge'),       0xffffffff1, "read a Huge");
+is($data->element('null'),       undef,       "read a Null");
+is($data->element('text'),       'hi mum!',   "read a Text::Byte");
+is($data->element('hi mum!'),    'hi mum!',   "read the same text again (reused)");
+is($data->element('zzlongtext'), 'z' x 300,   "read a Text::Short");
+isa_ok($embedded_array = $data->element('array'), 'Data::CROD::Array::Byte',
+    "read an array from the Dictionary");
+is($embedded_array->count(), 0, "array is empty");
+isa_ok(my $embedded_dict = $data->element('dict'), 'Data::CROD::Dictionary::Byte',
+    "read a dictionary from the Dictionary");
+is($embedded_dict->count(), 0, "dict is empty");
+is((stat($filename))[7], 457, "file size is correct");
+
+fail("FIXME add tests for non-ASCII keys and values; caching of the same; numeric keys");
+fail("FIXME add more data after zzlongtext to force a pointer overflow");
+fail("FIXME add tests for absurd data structures");
+
 done_testing;
