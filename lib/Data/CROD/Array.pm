@@ -14,20 +14,24 @@ sub _init {
     }, $class);
 }
 
+# write an Array to the file at the current offset
 sub _create {
     my($class, %args) = @_;
     my $fh = $args{fh};
     $class->_stash_already_seen(%args);
     (my $scalar_type = $class) =~ s/Array/Scalar/;
 
+    # node header
     print $fh $class->_type_byte_from_class().
               $scalar_type->_get_bytes_from_word(1 + $#{$args{data}});
 
-    # first write an empty pointer table
+    # empty pointer table
     my $table_start_ptr = tell($fh);
     print $fh "\x00" x $args{ptr_size} x (1 + $#{$args{data}});
     my $next_free_ptr = tell($fh); 
 
+    # write a pointer to each item in turn, and if necessary also write
+    # item, which can be of any type
     foreach my $index (0 .. $#{$args{data}}) {
         my $this_data = $args{data}->[$index];
         $class->_seek(%args, pointer => $table_start_ptr + $index * $args{ptr_size});
@@ -66,4 +70,5 @@ sub indices {
     return [] if($self->count() == 0);
     return [(0 .. $self->count() - 1)];
 }
+
 1;

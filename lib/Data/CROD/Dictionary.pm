@@ -16,16 +16,18 @@ sub _init {
     }, $class);
 }
 
+# write a Dictionary to the file at the current offset
 sub _create {
     my($class, %args) = @_;
     my $fh = $args{fh};
     $class->_stash_already_seen(%args);
     (my $scalar_type = $class) =~ s/Dictionary/Scalar/;
 
+    # node header
     print $fh $class->_type_byte_from_class().
               $scalar_type->_get_bytes_from_word(scalar(keys %{$args{data}}));
 
-    # first write an empty pointer table
+    # empty pointer table
     my $table_start_ptr = tell($fh);
     print $fh "\x00" x $args{ptr_size} x 2 x scalar(keys %{$args{data}}); 
     my $next_free_ptr = tell($fh); 

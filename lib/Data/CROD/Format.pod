@@ -7,11 +7,11 @@ Data::CROD::Format - a description of CROD data format, version 0.
 =head1 NOTATION
 
 Bytes with values that are printable ASCII will be shown as a single ASCII character.
-Otherwise bytes will be shown either in hexadecimal C<0xAB> or binary X<0b01010101>.
+Otherwise bytes will be shown either in hexadecimal - C<0xAB> - or binary - C<0b01010101>.
 
 When appropriate bit-fields will be shown in binary C<0b100>.
 
-Bytes will be separated by spaces, bit-fields by hyphens.
+Bytes will be separated by spaces, bit-fields within a byte by hyphens - C<0b11-0000-00>.
 
 =head1 ENDIANNESS
 
@@ -78,8 +78,9 @@ Encodes a list of nodes, which can themselves be of any type.
 
 =item Dictionary
 
-Encodes a list of key-value pairs, the keys being strings and the values being
-nodes of any type. The keys B<must> be stored in ASCIIbetical order.
+Encodes a list of key-value pairs, the keys being strings or numbers and the
+values being nodes of any type. The keys B<must> be stored in ASCIIbetical
+order.
 
 =back
 
@@ -91,9 +92,8 @@ by data if necessary
 =head2 NODE TYPE HEADERS
 
 The type header consists of a I<type specifier> followed by up to 8 bytes
-telling us how much data is in the node. The type specifier is a bit field. The
-first five bits tell us the data type. The first two bits will tell us whether
-the node is a collection or not.
+telling us how much data is in the node. The type specifier is a bit field.
+The first two bits will tell us whether the node is a collection or not.
 
     0b00 - Text node
 
@@ -142,7 +142,14 @@ length, followed by that many bytes of text. Note that text lengths are stored
 in B<bytes> but text is actually encoded in UTF-8. So the 3 character string
 "北京市" is stored as the 9 bytes:
 
-    北: E5 8C 97    京: E4 BA AC    市: E5 B8 82
+    北: 0xE5 0x8C 0x97    京: 0xE4 0xBA 0xAC    市: 0xE5 0xB8 0x82
+
+and the entire node would be the 11 bytes:
+
+    0b00-0000-00:  this is a Text node, with the length stored in a Byte
+    0x09:          the length of the text
+    0xE5 ... 0x82: nine bytes of text
+
 
 =head3 ARRAY NODES
 
@@ -157,8 +164,9 @@ be of any type.
 The hader is followed by the appropriate number of bytes to encode the number
 of elements in thedictionary, C<N>. Zero means an empty dictionary. That is
 immediately followed by C<N> pairs of pointers of the size specifed in the
-database header. The first pointer in each pair must point to a Text node
-which will be used as a key for looking up values. The second pointer in each
-pair points to the value, which can be any type of node. The pointers to keys
-must list them in ASCIIbetical order.
+database header. The first pointer in each pair must point to a Text or numeric
+node which will be used as a key for looking up values. The second pointer in
+each pair points to the value, which can be any type of node. The pointers to
+keys must list them in ASCIIbetical order. If they are out of order some elements
+may not be able to be found.
 

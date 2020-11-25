@@ -31,7 +31,7 @@ sub _scalar_type_bytes {
 
 sub _encode_ptr {
     my($class, %args) = @_;
-    return Data::CROD::Scalar->__get_bytes_from_word(
+    return Data::CROD::Scalar->_encode_word_as_number_of_bytes(
         $args{pointer}, 
         $args{ptr_size}
     );

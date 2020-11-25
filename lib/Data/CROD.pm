@@ -49,72 +49,33 @@ Returns the "root node" of the database. If that root node is a number, some
 piece of text, or Null, then it is decoded and the value returned. Otherwise an
 object representing an Array or a Dictionary is returned.
 
-=head1 DATA TYPES
+=head1 OBJECTS
 
-=head2 SCALAR TYPES
+These are sub-classes of either C<Data::CROD::Array> or C<Data::CROD::Dictionary>.
+Both implement the following three methods:
 
-=head3 Integer
+=head2 id
 
-These are internally 1, 2, 3, 4, and 8 byte words, but in practice you will
-just see them as integers.
+Returns a unique id for this object within the database. Note that circular data
+structures are supported, and looking at the C<id> is the only way to detect them.
 
-=head3 Float
+=head2 count
 
-A floating point number.
+Returns the number of elements in the structure.
 
-=head3 Null
+=head2 indices
 
-Equivalent to C<undef>
+Returns a list of all the available indices in the structure.
 
-=head3 Text
+=head2 element
 
-A string of Unicode characters.
+Takes a single argument, which must match one of the values that would be returned
+by C<indices>, and returns the associated data.
 
-For complicated internals reasons this is actually implemented as a Collection
-type, but you'll never see that :-)
+If the data is a number, Null, or text, the value will be returned directly. If the
+data is in turn another array or dictionary, an object will be returned.
 
-=head2 COLLECTION TYPES
-
-You will see these types as objects, which implement the following methods:
-
-=over
-
-=item count
-
-The number of elements in the Collection
-
-=item indices
-
-A list of all the indices in the Collection. Note that this may be an expensive
-operation for Dictionary objects.
-
-=item element
-
-Takes an index (either a number for Arrays or some text for Dictionaries)
-argument and looks up the associated value. It is a fatal error to try to look
-up something that doesn't exist. The value can of course be of any type,
-including embedded Arrays and Dictionaries. Circular references are permitted -
-an Array or Dictionary can contain itself.
-
-=item id
-
-A unique id for this collection within the file. Use this for spotting circular
-references, as you won't be able to use C<refaddr()>.
-
-=back
-
-The collection types are:
-
-=head3 Array
-
-An array, 0-based. You access elements by asking for, eg C<...-E<gt>element(37)>.
-
-=head3 Dictionary
-
-An associative array, or hash, although the implementation does not use
-hashing. You access elements by asking for, eg C<...-E<gt>element('horse')>.
-
-=head2 UNSUPPORTED PERL TYPES
+=head1 UNSUPPORTED PERL TYPES
 
 Globs, Regexes, References (except to Arrays and Dictionaries)
 
@@ -174,7 +135,6 @@ sub read {
     die("$class: $file header invalid: bad version\n") if($version == 0b11111);
 
     return Data::CROD::Node->_init(
-        file_format_version => $version,
         ptr_size            => $ptr_size,
         fh                  => $fh,
         db_base             => $original_file_pointer
