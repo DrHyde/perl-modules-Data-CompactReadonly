@@ -157,12 +157,30 @@ isa_ok($data = Data::CROD->read($fh), 'Data::CROD::Dictionary::Byte',
 is($data->count(), 18, "got a hash with 18 entries");
 is($data->_ptr_size(), 2, "pointers are 2 bytes");
 # diag(`hexdump -C $filename`);
-is($data->element('null'),       undef,       "read a Null");
-is($data->element('text'),       'hi mum!',   "read a Text::Byte");
-is($data->element('zzz'), 'say the bees', "can retrieve data");
+is($data->element('null'), undef,          "read a Null");
+is($data->element('text'), 'hi mum!',      "read a Text::Byte");
+is($data->element('zzz'),  'say the bees', "can retrieve data after the long text");
 is((stat($filename))[7], 558, "file size is correct");
 
-
-fail("FIXME add tests for absurd data structures");
+$hash = {
+    array => [ 5, 'four', [ 3 ], { two => 2 }, 1 ],
+};
+$hash->{dict} = $hash;
+$hash->{$_} = $_ foreach(0 .. 65536); # Dictionary::Medium, longer 3 byte pointers
+push @{$hash->{array}}, $hash->{array};
+Data::CROD->create($filename, $hash);
+open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
+isa_ok($data = Data::CROD->read($fh), 'Data::CROD::Dictionary::Medium',
+    "got a Dictionary::Medium");
+is($data->count(), 65539, "right number of elements");
+is($data->_ptr_size(), 3, "pointers are 3 bytes");
+is($data->element('array')->element(2)->element(0), 3,
+    "can retrieve from an array in an array in a hash");
+is($data->element('array')->element(3)->element('two'), 2,
+    "can retrieve from a hash in an array in a hash");
+is($data->element('dict')->element(65535), 65535,
+    "can retrieve from an array in a hash");
+is($data->element('dict')->element('array')->element(3)->element('two'), 2,
+    "can retrieve from a hash in an array in a hash in a hash");
 
 done_testing;
