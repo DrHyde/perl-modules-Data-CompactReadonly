@@ -5,6 +5,7 @@ use strict;
 
 use Fcntl qw(:seek);
 
+use Devel::StackTrace;
 use Data::CROD::Text;
 
 # assumes the $fh is pointing at the first data byte, having just read the header
@@ -156,8 +157,12 @@ sub _type_class {
 
 sub _bytes_at_current_offset {
     my($self, $bytes) = @_;
+    my $tell = tell($self->_fh());
     read($self->_fh(), my $data, $bytes) ||
-        die("$self: sysread failed to read $bytes\n");
+        die(
+            "$self: sysread failed to read $bytes bytes at offset $tell\n".
+            Devel::StackTrace->new()->as_string()
+        );
     return $data;
 }
 

@@ -149,7 +149,20 @@ is($data->element('Beijing'), "\x{5317}\x{4eac}\x{5e02}",
     "non-ASCII values work");
 is((stat($filename))[7], 501, "file size is correct");
 
-fail("FIXME add more data after zzlongtext to force a pointer overflow");
+$hash->{zzz} = 'say the bees'; # extra pair of pointers, plus 5 bytes for key, 14 bytes for value
+Data::CROD->create($filename, $hash);
+open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
+isa_ok($data = Data::CROD->read($fh), 'Data::CROD::Dictionary::Byte',
+    "got a Dictionary::Byte");
+is($data->count(), 18, "got a hash with 18 entries");
+is($data->_ptr_size(), 2, "pointers are 2 bytes");
+# diag(`hexdump -C $filename`);
+is($data->element('null'),       undef,       "read a Null");
+is($data->element('text'),       'hi mum!',   "read a Text::Byte");
+is($data->element('zzz'), 'say the bees', "can retrieve data");
+is((stat($filename))[7], 558, "file size is correct");
+
+
 fail("FIXME add tests for absurd data structures");
 
 done_testing;

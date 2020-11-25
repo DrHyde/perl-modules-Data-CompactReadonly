@@ -20,6 +20,7 @@ WriteMakefile(
   VERSION_FROM => 'lib/Data/CROD.pm',
   PREREQ_PM    => {
     'Data::IEEE754'                 => 0, # cant use pack's d> because that uses *native* format
+    'Devel::StackTrace'             => 0,
     'File::Temp'                    => 0,
     'Scalar::Util'                  => 0,
     'String::Binary::Interpolation' => 0,

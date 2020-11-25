@@ -5,13 +5,11 @@ MANIFEST
 MANIFEST.SKIP
 Makefile.PL
 lib/Data/CROD/Array/Byte.pm
-lib/Data/CROD/Array/Huge.pm
 lib/Data/CROD/Array/Medium.pm
 lib/Data/CROD/Array/Short.pm
 lib/Data/CROD/Array.pm
 lib/Data/CROD/Collection.pm
 lib/Data/CROD/Dictionary/Byte.pm
-lib/Data/CROD/Dictionary/Huge.pm
 lib/Data/CROD/Dictionary/Medium.pm
 lib/Data/CROD/Dictionary/Short.pm
 lib/Data/CROD/Dictionary.pm
@@ -32,7 +30,6 @@ lib/Data/CROD/Scalar/Null.pm
 lib/Data/CROD/Scalar/Short.pm
 lib/Data/CROD/Scalar.pm
 lib/Data/CROD/Text/Byte.pm
-lib/Data/CROD/Text/Huge.pm
 lib/Data/CROD/Text/Medium.pm
 lib/Data/CROD/Text/Short.pm
 lib/Data/CROD/Text.pm

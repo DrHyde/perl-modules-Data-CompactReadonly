@@ -130,7 +130,7 @@ sub _ptr_at_current_offset {
 sub _nth_value {
     my($self, $n) = @_;
 
-    $self->_seek($self->_nth_key_ptr_location($n) + $self->_scalar_type_bytes());
+    $self->_seek($self->_nth_key_ptr_location($n) + $self->_ptr_size());
     $self->_seek($self->_ptr_at_current_offset());
 
     return $self->_node_at_current_offset();
