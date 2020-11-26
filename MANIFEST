@@ -44,3 +44,6 @@ t/root-node-text.t
 t/coverage.sh
 t/create-scalar.t
 t/create-collection.t
+lib/Data/CROD/Array/Long.pm
+lib/Data/CROD/Dictionary/Long.pm
+lib/Data/CROD/Text/Long.pm
