@@ -128,7 +128,7 @@ sub read {
 
     read($fh, my $header, 5);
     (my $byte5) = ($header =~ /^CROD(.)/);
-    die("$class: $file header invalid: doesn't match /CROD./\n") unless(length($byte5));
+    die("$class: $file header invalid: doesn't match /CROD./\n") unless(defined($byte5));
 
     my $version  = (ord($byte5) & 0b11111000) >> 3;
     my $ptr_size = (ord($byte5) & 0b00000111) + 1;
