@@ -14,6 +14,8 @@ open(my $fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
 is(my $data = Data::CROD->read($fh), undef, "can create a Null file");
 
 foreach my $tuple (
+    [0,                    7], # Byte
+    ['0',                  7], # Byte
     [0x01,                 7],
     [0x0102,               8],
     [0x010203,             9],
@@ -29,7 +31,7 @@ foreach my $tuple (
             abs($value) == 0x10000000000000000 ? "auto-promoted humungo-Int to a Float" :
                                                  "can create an Int file ($value)"
         );
-        is((stat($filename))[7], $filesize, "... file is expected size");
+        is((stat($filename))[7], $filesize, "... file is expected size for data $value") || diag(`hexdump -C $filename`);
     }
 }
 
@@ -59,6 +61,20 @@ foreach my $length (1, 1000) {
     open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
     is($data = Data::CROD->read($fh), $value, "can create a non-ASCII Text file ($length times three chars, each 3 utf-8 bytes)");
         is((stat($filename))[7], $filesize, "... file is expected size $filesize");
+}
+
+foreach my $tuple ( # torture tests
+    ['007',   10], # Text
+    ['000',   10], # Text
+    ['00.7',  11], # Text
+    ['00.07', 12], # Text
+    ['0.07',  14], # Float
+) {
+    my($value, $filesize) = @{$tuple};
+    Data::CROD->create($filename, $value);
+    open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
+    is($data = Data::CROD->read($fh), $value, "can create a file with value '$value'");
+    is((stat($filename))[7], $filesize, "... file is expected size for data $value") || diag(`hexdump -C $filename`);
 }
 
 done_testing;

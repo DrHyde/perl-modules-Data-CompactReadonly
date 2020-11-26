@@ -96,12 +96,15 @@ sub _type_map_from_data {
                                    die("$class: Invalid: Dictionary too long");
                          } :
            $data =~ /
-               ^-?
+               ^-?                       # don't want to numify 00.7 (but 0.07 is fine)
                ( 0 | [1-9][0-9]* )       # 0, or 1-9 followed by any number of digits
                \.[0-9]+(e[+-]?[0-9]+)?$  # trailing .blahblah
            /x
              ? 'Scalar::Float' :
-           $data =~ /^(-?)([1-9][0-9]*)$/ # 1-9 then any number of 0-9 so we don't numify "007"
+           $data =~ /
+               ^(-?)                     # don't want to numify 007
+               ( 0 | [1-9][0-9]* )$      # 0, or 1-9 followed by any number of digits
+           /x
              ? do {
                  my $bytes = $class->_bytes_required_for_int($2);
                  $bytes == 1 ? 'Scalar::'.($1 ? 'Negative' : '').'Byte' :

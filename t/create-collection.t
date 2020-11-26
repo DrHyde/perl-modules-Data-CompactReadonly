@@ -165,8 +165,9 @@ is((stat($filename))[7], 558, "file size is correct");
 $hash = {
     'Bond' => '007',
     '007'  => 'Bond',
-    '0.07'  => 'Baby Bond',
-    '00.7'  => 'Weird Bond',
+    '0.07' => 'Baby Bond',
+    '00.7' => 'Weird Bond',
+    '000'  => 'Georgian Bond',
     array => [ 5, 'four', [ 3 ], { two => 2 }, 1 ],
 };
 $hash->{dict} = $hash;
@@ -176,7 +177,7 @@ Data::CROD->create($filename, $hash);
 open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
 isa_ok($data = Data::CROD->read($fh), 'Data::CROD::Dictionary::Medium',
     "got a Dictionary::Medium");
-is($data->count(), 65543, "right number of elements");
+is($data->count(), 65544, "right number of elements");
 is($data->_ptr_size(), 3, "pointers are 3 bytes");
 is($data->element('array')->element(2)->element(0), 3,
     "can retrieve from an array in an array in a hash");
@@ -191,5 +192,6 @@ is($data->element('007'), 'Bond', "... and use it as a key too");
 is($data->element(0.07), 'Baby Bond', "zero point something works when presented as a number");
 is($data->element('0.07'), 'Baby Bond', "zero point something works when presented as text");
 is($data->element('00.7'), 'Weird Bond', "00.7 isn't numeric, gets properly encoded as text");
+is($data->element('000'), 'Georgian Bond', 'but 000 is a bunch of characters');
 
 done_testing;
