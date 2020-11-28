@@ -21,7 +21,7 @@ subtest "empty dict", sub {
     open(my $fh, '<', \"$header_bytes$DICTBYTE\x00");
     isa_ok(
         my $dict = Data::CROD->read($fh),
-        "Data::CROD::Dictionary::Byte"
+        "Data::CROD::V0::Dictionary::Byte"
     );
     is($dict->count(), 0, "0 element dict");
     is($dict->_ptr_size(), 1, "1 byte pointers");
@@ -107,10 +107,10 @@ subtest "2 element dict", sub {
     eq_or_diff($dict->indices(), ['cow', 'dict'], "can list collection indices");
     is($dict->element('cow'), 'calf', "can fetch element 0 from a 2 element dict");
     isa_ok($dict->element('dict'), 
-        'Data::CROD::Dictionary',
+        'Data::CROD::V0::Dictionary',
         "can fetch a Dictionary from element 1 of the Dictionary");
     isa_ok($dict->element('dict')->element('dict')->element('dict'),
-        'Data::CROD::Dictionary',
+        'Data::CROD::V0::Dictionary',
         "it's Dictionaries all the way down");
     is($dict->id(), $dict->element('dict')->element('dict')->id(),
         "circular references to dicts all have the same id");

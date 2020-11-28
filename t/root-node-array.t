@@ -16,7 +16,7 @@ my $header_bytes = "CROD\x00"; # version 0, byte pointers
 open(my $fh, '<', \"$header_bytes${b01000000}\x00");
 isa_ok(
     my $array = Data::CROD->read($fh),
-    "Data::CROD::Array::Byte"
+    "Data::CROD::V0::Array::Byte"
 );
 is($array->count(), 0, "empty array");
 is($array->_ptr_size(), 1, "1 byte pointers");
@@ -57,7 +57,7 @@ open($fh, '<', \(
 read($fh, my $blah, 2);
 $array = Data::CROD->read($fh);
 is($array->_db_base(), 2, "the fh was opened after having already been partially read");
-isa_ok($array, 'Data::CROD::Array::Byte');
+isa_ok($array, 'Data::CROD::V0::Array::Byte');
 is($array->count(), 2, "2 element array");
 throws_ok { $array->element(94) }
     qr/Invalid element: 94: out of range/,
@@ -72,7 +72,7 @@ open($fh, '<', \(
     "$MEDIUM\x12\x34\x56"          # 0x0d Medium, 0x123456
 ));
 $array = Data::CROD->read($fh);
-isa_ok($array, 'Data::CROD::Array::Short');
+isa_ok($array, 'Data::CROD::V0::Array::Short');
 is($array->count(), 2, "2 element array");
 is($array->element(0), 0x123456, "fetched a Medium element from the array");
 is($array->element(1), 0x9445,   "fetched a Short element from the array");
@@ -85,7 +85,7 @@ open($fh, '<', \(
     "$NULL"                                  # 0x19
 ));
 $array = Data::CROD->read($fh);
-isa_ok($array, 'Data::CROD::Array::Short');
+isa_ok($array, 'Data::CROD::V0::Array::Short');
 is($array->count(), 3, "3 element array");
 is($array->element(0), 0xfedcba9876543210, "fetched a Huge element from the array");
 is($array->element(1), 0xabcdef01,         "fetched a Long element from the array");
@@ -108,7 +108,7 @@ open($fh, '<', \(
     "$DICTBYTE\x00"                          # 0x2e Dictionary, empty
 ));
 $array = Data::CROD->read($fh);
-isa_ok($array, 'Data::CROD::Array::Short');
+isa_ok($array, 'Data::CROD::V0::Array::Short');
 is($array->_ptr_size(), 2, "2 byte pointers");
 is($array->count(), 6, "6 element array");
 is($array->element(0), 0xfedcba9876543210, "fetched a Huge element from the array");
@@ -116,10 +116,10 @@ is($array->element(1), 0xabcdef01,         "fetched a Long element from the arra
 is($array->element(2), undef,              "fetched a Null element from the array");
 is($array->element(3), "Fran\xe7ais",      "fetched a Text element from the array");
 isa_ok(my $array2 = $array->element(4),
-    'Data::CROD::Array::Short',
+    'Data::CROD::V0::Array::Short',
     "fetched an Array element from the array");
 isa_ok($array->element(5),    # no further tests for this here
-    'Data::CROD::Dictionary::Byte',
+    'Data::CROD::V0::Dictionary::Byte',
     "fetched a Dictionary element from the array");
 is($array2->_ptr_size(), 2, "2 byte pointers");
 is($array2->count(), 6, "6 element array");
@@ -128,10 +128,10 @@ is($array2->element(1), 0xabcdef01,         "fetched a Long element from the arr
 is($array2->element(2), undef,              "fetched a Null element from the array");
 is($array2->element(3), "Fran\xe7ais",      "fetched a Text element from the array");
 isa_ok($array2->element(4),
-    'Data::CROD::Array::Short',
+    'Data::CROD::V0::Array::Short',
     "fetched an Array element from the embedded array");
 isa_ok($array->element(4)->element(4)->element(4)->element(4)->element(4),
-    'Data::CROD::Array::Short',
+    'Data::CROD::V0::Array::Short',
     "it's arrays all the way down");
 is($array->id(), $array->element(4)->element(4)->id(),
     "circular references to arrays all have the same id");
@@ -154,7 +154,7 @@ open($fh, '<', \(
     "$BYTE\x09"                                   # 0x0d
 ));
 $array = Data::CROD->read($fh);
-isa_ok($array, 'Data::CROD::Array::Long');
+isa_ok($array, 'Data::CROD::V0::Array::Long');
 is($array->count(), 1, "1 element array");
 is($array->_ptr_size(), 3, "3 byte pointers");
 is($array->element(0), 9, "can fetch");
@@ -166,7 +166,7 @@ open($fh, '<', \(
     "$BYTE\x09"                                   # 0x0e
 ));
 $array = Data::CROD->read($fh);
-isa_ok($array, 'Data::CROD::Array::Long');
+isa_ok($array, 'Data::CROD::V0::Array::Long');
 is($array->count(), 1, "1 element array");
 is($array->_ptr_size(), 4, "4 byte pointers");
 is($array->element(0), 9, "can fetch");
@@ -178,7 +178,7 @@ open($fh, '<', \(
     "$BYTE\x09"                                   # 0x11
 ));
 $array = Data::CROD->read($fh);
-isa_ok($array, 'Data::CROD::Array::Medium');
+isa_ok($array, 'Data::CROD::V0::Array::Medium');
 is($array->count(), 1, "1 element array");
 is($array->_ptr_size(), 8, "8 byte pointers");
 is($array->element(0), 9, "can fetch");

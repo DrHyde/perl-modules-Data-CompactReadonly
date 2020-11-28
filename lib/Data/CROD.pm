@@ -3,7 +3,7 @@ package Data::CROD;
 use warnings;
 use strict;
 
-use Data::CROD::Node;
+use Data::CROD::V0::Node;
 
 # Yuck, semver. I give in, the stupid cult that doesn't understand
 # what the *number* bit of *version number* means has won.
@@ -111,14 +111,14 @@ sub create {
         print $fh "CROD$byte5";
         my $already_seen = {};
         eval {
-            Data::CROD::Node->_create(
+            "Data::CROD::V${version}::Node"->_create(
                 fh           => $fh,
                 ptr_size     => $ptr_size,
                 data         => $data,
                 already_seen => $already_seen
             );
         };
-        if($@ && index($@, Data::CROD::Node->_ptr_blown()) != -1) {
+        if($@ && index($@, "Data::CROD::V${version}::Node"->_ptr_blown()) != -1) {
             next PTR_SIZE;
         } elsif($@) { die($@); }
         last PTR_SIZE;
@@ -153,7 +153,7 @@ sub read {
     my $ptr_size = (ord($byte5) & 0b00000111) + 1;
     die("$class: $file header invalid: bad version\n") if($version == 0b11111);
 
-    return Data::CROD::Node->_init(
+    return "Data::CROD::V${version}::Node"->_init(
         ptr_size            => $ptr_size,
         fh                  => $fh,
         db_base             => $original_file_pointer
