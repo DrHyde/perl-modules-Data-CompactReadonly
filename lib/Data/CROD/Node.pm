@@ -98,7 +98,9 @@ sub _type_map_from_data {
            $data =~ /
                ^-?                       # don't want to numify 00.7 (but 0.07 is fine)
                ( 0 | [1-9][0-9]* )       # 0, or 1-9 followed by any number of digits
-               \.[0-9]+(e[+-]?[0-9]+)?$  # trailing .blahblah
+               \.                        # decimal point
+               [0-9]*[1-9]               # digits, must not end in zero
+               ([eE][+-]?[0-9]+)?$       # exponent
            /x
              ? 'Scalar::Float' :
            $data =~ /

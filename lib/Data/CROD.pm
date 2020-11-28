@@ -30,9 +30,22 @@ or hash that in turn consists of undefs, numbers, text, references to arrays or
 hashes, and so on ad infinitum.
 
 This method may be very slow. It constructs a file by making lots
-of little writes and seek()ing all over the place. And it doesn't do anything clever to figure out what pointer size to use, it just tries the shortest first, and then if that's not enough tries again, and again, bigger each time. See L<Data::CROD::Format> for more on pointer sizes.
+of little writes and seek()ing all over the place. It doesn't do anything
+clever to figure out what pointer size to use, it just tries the shortest
+first, and then if that's not enough tries again, and again, bigger each time.
+See L<Data::CROD::Format> for more on pointer sizes. It may also eat B<lots> of
+memory. It keeps a cache of everything it has seen while building your
+database, so that it can re-use data by just pointing at it instead of writing
+multiple copies of the same data into the file.
 
-And this method may eat B<lots> of memory. It keeps a cache of everything it has seen while building your database, so that it can re-use data by just pointing at it instead of writing multiple copies of the same data into the file.
+Note that it will carefully preserve things that look like numbers but have
+extraneous leading or trailing zeroes. "007", for instance, is text, not a number,
+the leading zeroes are important. And while 7.10 is a number, the extra zero has
+meaning - it tells you that the value is accurate to three significant figures. If
+it were stored as a number, it would be retrieved as merely 7.1, accurate to only
+two significant figures. We are happy to spend a little extra storage in the
+interested of correctly storing your data. If you then go on to just treat 7.10
+as a number in perl, and so as equivalent to 7.1 that is of course up to you.
 
 =head2 read
 

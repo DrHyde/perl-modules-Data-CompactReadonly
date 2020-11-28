@@ -4,6 +4,7 @@ no warnings qw(portable);
 
 use File::Temp qw(tempfile);
 use Test::More;
+use Test::Exception;
 
 use Data::CROD;
 
@@ -156,7 +157,6 @@ isa_ok($data = Data::CROD->read($fh), 'Data::CROD::Dictionary::Byte',
     "got a Dictionary::Byte");
 is($data->count(), 18, "got a hash with 18 entries");
 is($data->_ptr_size(), 2, "pointers are 2 bytes");
-# diag(`hexdump -C $filename`);
 is($data->element('null'), undef,          "read a Null");
 is($data->element('text'), 'hi mum!',      "read a Text::Byte");
 is($data->element('zzz'),  'say the bees', "can retrieve data after the long text");
@@ -168,7 +168,10 @@ $hash = {
     '0.07' => 'Baby Bond',
     '00.7' => 'Weird Bond',
     '000'  => 'Georgian Bond',
-    array => [ 5, 'four', [ 3 ], { two => 2 }, 1 ],
+    array  => [ 5, 'four', [ 3 ], { two => 2 }, 1 ],
+    '7.0'  => 'seven point oh',
+    '7.00' => 'seven point oh oh',
+    '7.10' => 'seven point one oh',
 };
 $hash->{dict} = $hash;
 $hash->{$_} = $_ foreach(0 .. 65536); # Dictionary::Medium, longer 3 byte pointers
@@ -177,7 +180,7 @@ Data::CROD->create($filename, $hash);
 open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
 isa_ok($data = Data::CROD->read($fh), 'Data::CROD::Dictionary::Medium',
     "got a Dictionary::Medium");
-is($data->count(), 65544, "right number of elements");
+is($data->count(), 65547, "right number of elements");
 is($data->_ptr_size(), 3, "pointers are 3 bytes");
 is($data->element('array')->element(2)->element(0), 3,
     "can retrieve from an array in an array in a hash");
@@ -193,5 +196,9 @@ is($data->element(0.07), 'Baby Bond', "zero point something works when presented
 is($data->element('0.07'), 'Baby Bond', "zero point something works when presented as text");
 is($data->element('00.7'), 'Weird Bond', "00.7 isn't numeric, gets properly encoded as text");
 is($data->element('000'), 'Georgian Bond', 'but 000 is a bunch of characters');
+is($data->element('7.0'), 'seven point oh', 'trailing zeroes on strings that look like floats are preserved (7.0)');
+is($data->element('7.00'), 'seven point oh oh', 'trailing zeroes on strings that look like floats are preserved (7.00)');
+is($data->element('7.10'), 'seven point one oh', 'trailing zeroes on strings that look like floats are preserved (7.10)');
+throws_ok { $data->element(7.1) } qr/Invalid element: 7.1: doesn't exist/, "key 7.10 is not the same as key 7.1";
 
 done_testing;
