@@ -75,6 +75,12 @@ by C<indices>, and returns the associated data.
 If the data is a number, Null, or text, the value will be returned directly. If the
 data is in turn another array or dictionary, an object will be returned.
 
+=head2 exists
+
+Takes a single argument and tell you whether an index exists for it. It will still
+die if you ask it fomr something stupid such as a floating point array index or
+a Null dictionary entry.
+
 =head1 UNSUPPORTED PERL TYPES
 
 Globs, Regexes, References (except to Arrays and Dictionaries)

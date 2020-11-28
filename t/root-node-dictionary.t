@@ -171,6 +171,11 @@ subtest "large odd number of elements in a dict", sub {
     throws_ok { $dict->element('horse') }
         qr/Invalid element: horse: doesn't exist/,
         "cry like a baby when trying to fetch non-existent elements";
+    is($dict->exists('horse'), 0, "exists() works on a non-existent index");
+    is($dict->exists('Beijing'), 1, "exists() works on an existent index");
+    throws_ok { $dict->exists(undef) }
+        qr/Invalid element: \[undef\] isn't Text/,
+        "exists() dies when asked for something hopelessly invalid"
 };
 
 subtest "large even number of elements dict", sub {

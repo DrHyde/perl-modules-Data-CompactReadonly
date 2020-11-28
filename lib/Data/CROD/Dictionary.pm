@@ -69,7 +69,7 @@ sub element {
     die(
         "$self: Invalid element: ".
         (!defined($element) ? '[undef]' : $element).
-        " isn't Text\n"
+        " isn't Text or numeric\n"
     ) unless(defined($element) && !ref($element));
 
     # first we need to find that key
@@ -99,6 +99,18 @@ sub element {
         last if($prev_candidate == $cur_candidate);
     }
     die("$self: Invalid element: $element: doesn't exist\n");
+}
+
+sub exists {
+    my($self, $element) = @_;
+    eval { $self->element($element) };
+    if($@ =~ /doesn't exist/) {
+        return 0;
+    } elsif($@) {
+        die($@);
+    } else {
+        return 1;
+    }
 }
 
 sub _nth_key {

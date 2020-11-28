@@ -135,6 +135,12 @@ isa_ok($array->element(4)->element(4)->element(4)->element(4)->element(4),
     "it's arrays all the way down");
 is($array->id(), $array->element(4)->element(4)->id(),
     "circular references to arrays all have the same id");
+is($array->exists(6), 0, "exists() works on a non-existent element");
+is($array->exists(2), 1, "exists() works on an existent element");
+throws_ok { $array->exists(-1) } qr/negative/,
+    "exists() dies as expected on an illegal (negative) index";
+throws_ok { $array->exists('horse') } qr/non-integer/,
+    "exists() dies as expected on an illegal (non-integer) index";
 
 # at this point we've tested Array::Byte and ::Short, and 1 and 2 byte
 # pointers. We now test 3, 4, and 8 byte pointers (can't be arsed with

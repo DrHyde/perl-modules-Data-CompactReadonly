@@ -46,6 +46,18 @@ sub _create {
     }
 }
 
+sub exists {
+    my($self, $element) = @_;
+    eval { $self->element($element) };
+    if($@ =~ /out of range/) {
+        return 0;
+    } elsif($@) {
+        die($@);
+    } else {
+        return 1;
+    }
+}
+
 sub element {
     my($self, $element) = @_;
     no warnings 'numeric';
