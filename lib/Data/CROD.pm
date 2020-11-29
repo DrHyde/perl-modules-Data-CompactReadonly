@@ -98,6 +98,32 @@ a Null dictionary entry.
 
 Globs, Regexes, References (except to Arrays and Dictionaries)
 
+=head1 BUGS/FEEDBACK
+
+Please report bugs by at L<https://github.com/DrHyde/perl-modules-Data-CROD/issues>, including, if possible, a test case.
+
+=head1 SEE ALSO
+
+L<DBM::Deep> if you need updateable databases.
+
+=head1 SOURCE CODE REPOSITORY
+
+L<git://github.com/DrHyde/perl-modules-Data-CROD.git>
+
+=head1 AUTHOR, COPYRIGHT and LICENCE
+
+Copyright 2020 David Cantrell E<lt>F<david@cantrell.org.uk>E<gt>
+
+This software is free-as-in-speech software, and may be used,
+distributed, and modified under the terms of either the GNU
+General Public Licence version 2 or the Artistic Licence.  It's
+up to you which one you use.  The full text of the licences can
+be found in the files GPL2.txt and ARTISTIC.txt, respectively.
+
+=head1 CONSPIRACY
+
+This module is also free-as-in-mason software.
+
 =cut
 
 sub create {
