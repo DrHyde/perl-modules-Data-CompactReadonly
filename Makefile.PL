@@ -6,8 +6,6 @@ use ExtUtils::MakeMaker;
 die("OS unsupported\n") if(~0 < 18446744073709551615);
 use 5.8.9;
 
-BEGIN { binmode STDOUT, ":utf8" }
-
 WriteMakefile(
   NAME         => 'Data::CROD',
     META_MERGE => {

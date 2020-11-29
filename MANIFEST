@@ -49,3 +49,4 @@ lib/Data/CROD/V0/Text/Medium.pm
 lib/Data/CROD/V0/Text/Short.pm
 lib/Data/CROD/V0/Text.pm
 lib/Data/CROD.pm
+t/tie.t
