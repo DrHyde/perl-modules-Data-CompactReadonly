@@ -4,16 +4,24 @@ use warnings;
 use strict;
 use base qw(Data::CROD::V0::Collection Data::CROD::Dictionary);
 
+use Data::CROD::V0::TiedDictionary;
 use Scalar::Util qw(blessed);
 
 sub _init {
     my($class, %args) = @_;
     my($parent, $offset) = @args{qw(parent offset)};
 
-    return bless({
+    my $object = bless({
         parent => $parent,
         offset => $offset
     }, $class);
+
+    if($parent->_tied()) {
+        tie my %dict, 'Data::CROD::V0::TiedDictionary', $object;
+        return \%dict;
+    } else {
+        return $object;
+    }
 }
 
 # write a Dictionary to the file at the current offset

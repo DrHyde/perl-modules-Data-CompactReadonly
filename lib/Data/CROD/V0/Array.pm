@@ -4,14 +4,23 @@ use warnings;
 use strict;
 use base qw(Data::CROD::V0::Collection Data::CROD::Array);
 
+use Data::CROD::V0::TiedArray;
+
 sub _init {
     my($class, %args) = @_;
     my($parent, $offset) = @args{qw(parent offset)};
 
-    return bless({
+    my $object = bless({
         parent => $parent,
         offset => $offset
     }, $class);
+
+    if($parent->_tied()) {
+        tie my @array, 'Data::CROD::V0::TiedArray', $object;
+        return \@array;
+    } else {
+        return $object;
+    }
 }
 
 # write an Array to the file at the current offset

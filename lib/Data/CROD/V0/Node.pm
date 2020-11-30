@@ -51,6 +51,11 @@ sub _db_base {
     return $self->_root()->{db_base};
 }
 
+sub _tied {
+    my $self = shift;
+    return $self->_root()->{'tie'};
+}
+
 # figure out what type the node is from the node specifier byte, then call
 # the class's _init to get it to read itself from the db
 sub _node_at_current_offset {

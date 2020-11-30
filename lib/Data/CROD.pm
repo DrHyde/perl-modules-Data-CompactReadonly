@@ -49,28 +49,48 @@ as a number in perl, and so as equivalent to 7.1 that is of course up to you.
 
 =head2 read
 
-Takes a single argument, which is a filename or an already open file handle. If
-a filehandle, the current file pointer should be at the start of the database
-(not necessarily at the start of the file; the database could be in a
-C<__DATA__> segment) and B<must> have been opened in "just the bytes ma'am"
-mode.
+Takes a single compulsory argument, which is a filename or an already open file
+handle, and some options.
+
+If the first argument is a filehandle, the current file pointer should be at
+the start of the database (not necessarily at the start of the file; the
+database could be in a C<__DATA__> segment) and B<must> have been opened in
+"just the bytes ma'am" mode.
 
 It is a fatal error to pass in a filehandle which was not opened correctly or
-the name of a file that can't be opened or which doesn't contain a valid database.
+the name of a file that can't be opened or which doesn't contain a valid
+database.
+
+The options are name/value pairs. Valid options are:
+
+=over
+
+=item tie
+
+If true return tied objects instead of normal objects. This means that you will
+be able to access data by de-referencing and pretending to access elements
+directly. Under the bonnet this wraps around the objects as documented below,
+so is just a layer of indirection. On modern hardware you probably won't notice
+the concomittant slow down but may appreciate the convenience.
+
+=back
 
 Returns the "root node" of the database. If that root node is a number, some
 piece of text, or Null, then it is decoded and the value returned. Otherwise an
-object representing an Array or a Dictionary is returned.
+object (possibly a tied object) representing an Array or a Dictionary is returned.
 
 =head1 OBJECTS
 
-These are sub-classes of either C<Data::CROD::Array> or C<Data::CROD::Dictionary>.
-Both implement the following three methods:
+If you asked for normal objects to be returned instead of tied objects, then
+these are sub-classes of either C<Data::CROD::Array> or
+C<Data::CROD::Dictionary>. Both implement the following three methods:
 
 =head2 id
 
 Returns a unique id for this object within the database. Note that circular data
 structures are supported, and looking at the C<id> is the only way to detect them.
+
+This is not accessible when using tied objects.
 
 =head2 count
 
@@ -152,7 +172,7 @@ sub create {
 }
 
 sub read {
-    my($class, $file) = @_;
+    my($class, $file, %args) = @_;
     my $fh;
     if(ref($file)) {
         $fh = $file;
@@ -182,7 +202,8 @@ sub read {
     return "Data::CROD::V${version}::Node"->_init(
         ptr_size            => $ptr_size,
         fh                  => $fh,
-        db_base             => $original_file_pointer
+        db_base             => $original_file_pointer,
+        exists($args{'tie'}) ? ('tie' => 1 ) : ()
     );
 }
 
