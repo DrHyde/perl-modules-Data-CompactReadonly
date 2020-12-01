@@ -14,7 +14,6 @@ sub FETCHSIZE { shift()->[0]->count(); }
 
 sub STORE     { die("Illegal access: store: this is a read-only database\n"); }
 sub STORESIZE { shift()->STORE() }
-sub EXTEND    { shift()->STORE() }
 sub DELETE    { shift()->STORE() }
 sub CLEAR     { shift()->STORE() }
 sub PUSH      { shift()->STORE() }
