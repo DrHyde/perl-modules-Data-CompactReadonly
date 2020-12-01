@@ -11,8 +11,7 @@ use Data::CROD;
 (undef, my $filename) = tempfile(UNLINK => 1);
 
 Data::CROD->create($filename, []);
-open(my $fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
-isa_ok(my $data = Data::CROD->read($fh), 'Data::CROD::V0::Array::Byte',
+isa_ok(my $data = Data::CROD->read($filename), 'Data::CROD::V0::Array::Byte',
     "can create an Array::Byte");
 isa_ok($data, 'Data::CROD::Array', "and that isa Data::CROD::Array");
 is($data->count(), 0, "it's empty");
@@ -36,8 +35,7 @@ my $array = [
     'x' x 256    # Text::Short,     259 bytes
 ];
 Data::CROD->create($filename, $array);
-open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
-isa_ok($data = Data::CROD->read($fh), 'Data::CROD::V0::Array::Byte',
+isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Array::Byte',
     "got another Array::Byte");
 # yes, 1 byte despite the file being more than 255 bytes long. The
 # last thing pointed to starts before the boundary.
@@ -58,8 +56,7 @@ is((stat($filename))[7], 317, "file size is correct");
 
 push @{$array}, [], $array;
 Data::CROD->create($filename, $array);
-open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
-isa_ok($data = Data::CROD->read($fh), 'Data::CROD::V0::Array::Byte',
+isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Array::Byte',
     "got another Array::Byte");
 # last item pointed at is too far along for 1 byte pointers.
 # TODO alter the order in which things are added to the file so
@@ -92,8 +89,7 @@ is($data->element(12)->element(12)->element(11)->id(),
 is((stat($filename))[7], 317 + 2 + 13 + 2, "file size is correct");
 
 Data::CROD->create($filename, {});
-open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
-isa_ok($data = Data::CROD->read($fh), 'Data::CROD::V0::Dictionary::Byte',
+isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Dictionary::Byte',
     "got a Dictionary::Byte");
 is($data->count(), 0, "it's empty");
 is($data->_ptr_size(), 1, "pointers are 1 byte");
@@ -124,8 +120,7 @@ my $hash = {
     # 501 bytes total
 };
 Data::CROD->create($filename, $hash);
-open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
-isa_ok($data = Data::CROD->read($fh), 'Data::CROD::V0::Dictionary::Byte',
+isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Dictionary::Byte',
     "got a Dictionary::Byte");
 isa_ok($data, 'Data::CROD::Dictionary', "and that isa Data::CROD::Dictionary");
 is($data->count(), 17, "17 entries");
@@ -154,8 +149,7 @@ is((stat($filename))[7], 501, "file size is correct");
 
 $hash->{zzz} = 'say the bees'; # extra pair of pointers, plus 5 bytes for key, 14 bytes for value
 Data::CROD->create($filename, $hash);
-open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
-isa_ok($data = Data::CROD->read($fh), 'Data::CROD::V0::Dictionary::Byte',
+isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Dictionary::Byte',
     "got a Dictionary::Byte");
 is($data->count(), 18, "got a hash with 18 entries");
 is($data->_ptr_size(), 2, "pointers are 2 bytes");
@@ -179,8 +173,7 @@ $hash->{dict} = $hash;
 $hash->{$_} = $_ foreach(0 .. 65536); # Dictionary::Medium, longer 3 byte pointers
 push @{$hash->{array}}, $hash->{array};
 Data::CROD->create($filename, $hash);
-open($fh, '<:unix', $filename) || die("Can't write $filename: $!\n");
-isa_ok($data = Data::CROD->read($fh), 'Data::CROD::V0::Dictionary::Medium',
+isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Dictionary::Medium',
     "got a Dictionary::Medium");
 isa_ok($data, 'Data::CROD::Dictionary', "and that isa Data::CROD::Dictionary");
 is($data->count(), 65547, "right number of elements");
