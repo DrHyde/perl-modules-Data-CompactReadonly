@@ -8,7 +8,7 @@ use Test::Exception;
 use File::Temp qw(tempfile);
 use String::Binary::Interpolation;
 
-use Data::CROD;
+use Data::CompactReadonly;
 
 my $header_bytes = "CROD\x00"; # version 0, byte pointers
 
@@ -20,8 +20,8 @@ my $SHORT    = $b11001000;
 subtest "empty dict", sub {
     open(my $fh, '<', \"$header_bytes$DICTBYTE\x00");
     isa_ok(
-        my $dict = Data::CROD->read($fh),
-        "Data::CROD::V0::Dictionary::Byte"
+        my $dict = Data::CompactReadonly->read($fh),
+        "Data::CompactReadonly::V0::Dictionary::Byte"
     );
     is($dict->count(), 0, "0 element dict");
     is($dict->_ptr_size(), 1, "1 byte pointers");
@@ -38,7 +38,7 @@ subtest "1 element dict", sub {
         "$TEXTBYTE\x04calf"                                  # 0x0e
     ));
     read($fh, my $blah, 2);
-    my $dict = Data::CROD->read($fh);
+    my $dict = Data::CompactReadonly->read($fh);
     is($dict->_db_base(), 2, "the fh was opened after having already been partially read");
     is($dict->count(), 1, "1 element dict");
     eq_or_diff($dict->indices(), ['cow'], "can list collection indices");
@@ -53,7 +53,7 @@ subtest "dict with Null key", sub {
         "$NULL".                                             # 0x09
         "$TEXTBYTE\x04calf"                                  # 0x0a
     ));
-    my $dict = Data::CROD->read($fh);
+    my $dict = Data::CompactReadonly->read($fh);
     is($dict->count(), 1, "1 element dict");
     throws_ok { $dict->indices() }
         qr/Invalid type: Null: Dictionary keys must be Text/,
@@ -74,7 +74,7 @@ subtest "dict with Collection key", sub {
         "$DICTBYTE\x00".                                     # 0x09
         "$TEXTBYTE\x04calf"                                  # 0x0b
     ));
-    my $dict = Data::CROD->read($fh);
+    my $dict = Data::CompactReadonly->read($fh);
     throws_ok { $dict->indices() }
         qr/Invalid type: .*Dictionary::Byte.*: Dictionary keys must be Text/,
         "finding a bad key in the index is fatal";
@@ -86,7 +86,7 @@ subtest "missing data", sub {
         "$DICTBYTE\x01".                                     # 0x05
         "\x09".    "\x0b"                                    # 0x07 and 0x08
     ));
-    my $dict = Data::CROD->read($fh);
+    my $dict = Data::CompactReadonly->read($fh);
     throws_ok { $dict->indices() }
         qr/sysread failed to read/,
         "fatal read errors bomb out fast";
@@ -102,15 +102,15 @@ subtest "2 element dict", sub {
         "$TEXTBYTE\x04calf".                                 # 0x10
         "$TEXTBYTE\x04dict"                                  # 0x16
     ));
-    my $dict = Data::CROD->read($fh);
+    my $dict = Data::CompactReadonly->read($fh);
     is($dict->count(), 2, "2 element dict");
     eq_or_diff($dict->indices(), ['cow', 'dict'], "can list collection indices");
     is($dict->element('cow'), 'calf', "can fetch element 0 from a 2 element dict");
     isa_ok($dict->element('dict'), 
-        'Data::CROD::V0::Dictionary',
+        'Data::CompactReadonly::V0::Dictionary',
         "can fetch a Dictionary from element 1 of the Dictionary");
     isa_ok($dict->element('dict')->element('dict')->element('dict'),
-        'Data::CROD::V0::Dictionary',
+        'Data::CompactReadonly::V0::Dictionary',
         "it's Dictionaries all the way down");
     is($dict->id(), $dict->element('dict')->element('dict')->id(),
         "circular references to dicts all have the same id");
@@ -152,7 +152,7 @@ subtest "large odd number of elements in a dict", sub {
         "$TEXTBYTE\x01i".                                    # 0x61
         "$NULL"                                              # 0x64
     ));
-    my $dict = Data::CROD->read($fh);
+    my $dict = Data::CompactReadonly->read($fh);
     is($dict->count(), 11, "11 element dict");
     eq_or_diff(my $indices = $dict->indices(),
         [ qw(Beijing a b c d e f g h i), "\x{5317}\x{4eac}\x{5e02}" ],
@@ -201,7 +201,7 @@ subtest "large even number of elements dict", sub {
         "$TEXTBYTE\x01f".                                    # 0x31
         "$TEXTBYTE\x01F"                                     # 0x34
     ));
-    my $dict = Data::CROD->read($fh);
+    my $dict = Data::CompactReadonly->read($fh);
     is($dict->count(), 6, "6 element dict");
     is($dict->element('a'), 'A', 'can fetch element 0 from dictionary');
     is($dict->element('b'), 'B', 'can fetch element 1 from dictionary');

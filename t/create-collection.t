@@ -6,14 +6,14 @@ use File::Temp qw(tempfile);
 use Test::More;
 use Test::Exception;
 
-use Data::CROD;
+use Data::CompactReadonly;
 
 (undef, my $filename) = tempfile(UNLINK => 1);
 
-Data::CROD->create($filename, []);
-isa_ok(my $data = Data::CROD->read($filename), 'Data::CROD::V0::Array::Byte',
+Data::CompactReadonly->create($filename, []);
+isa_ok(my $data = Data::CompactReadonly->read($filename), 'Data::CompactReadonly::V0::Array::Byte',
     "can create an Array::Byte");
-isa_ok($data, 'Data::CROD::Array', "and that isa Data::CROD::Array");
+isa_ok($data, 'Data::CompactReadonly::Array', "and that isa Data::CompactReadonly::Array");
 is($data->count(), 0, "it's empty");
 is((stat($filename))[7], 7, "file size is correct");
 
@@ -34,8 +34,8 @@ my $array = [
     "apple",     # Text::Byte, no storage
     'x' x 256    # Text::Short,     259 bytes
 ];
-Data::CROD->create($filename, $array);
-isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Array::Byte',
+Data::CompactReadonly->create($filename, $array);
+isa_ok($data = Data::CompactReadonly->read($filename), 'Data::CompactReadonly::V0::Array::Byte',
     "got another Array::Byte");
 # yes, 1 byte despite the file being more than 255 bytes long. The
 # last thing pointed to starts before the boundary.
@@ -55,8 +55,8 @@ is($data->element(10), 'x' x 256,  "read another Text");
 is((stat($filename))[7], 317, "file size is correct");
 
 push @{$array}, [], $array;
-Data::CROD->create($filename, $array);
-isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Array::Byte',
+Data::CompactReadonly->create($filename, $array);
+isa_ok($data = Data::CompactReadonly->read($filename), 'Data::CompactReadonly::V0::Array::Byte',
     "got another Array::Byte");
 # last item pointed at is too far along for 1 byte pointers.
 # TODO alter the order in which things are added to the file so
@@ -75,7 +75,7 @@ is($data->element(7), 0x100000000, "read a Huge");
 is($data->element(8), 0x100000000, "read another Huge");
 is($data->element(9), 'apple',     "read another Text");
 is($data->element(10), 'x' x 256,  "read a Text::Short");
-isa_ok(my $embedded_array = $data->element(11), 'Data::CROD::V0::Array::Byte',
+isa_ok(my $embedded_array = $data->element(11), 'Data::CompactReadonly::V0::Array::Byte',
     "can embed an array in an array");
 is($embedded_array->count(), 0, "sub-array is empty");
 is($data->element(12)->element(12)->element(11)->id(),
@@ -88,8 +88,8 @@ is($data->element(12)->element(12)->element(11)->id(),
 #   two for the empty array
 is((stat($filename))[7], 317 + 2 + 13 + 2, "file size is correct");
 
-Data::CROD->create($filename, {});
-isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Dictionary::Byte',
+Data::CompactReadonly->create($filename, {});
+isa_ok($data = Data::CompactReadonly->read($filename), 'Data::CompactReadonly::V0::Dictionary::Byte',
     "got a Dictionary::Byte");
 is($data->count(), 0, "it's empty");
 is($data->_ptr_size(), 1, "pointers are 1 byte");
@@ -119,10 +119,10 @@ my $hash = {
     zzlongtext => 'z' x 300,       # 12 bytes for key, 303 for value (Text::Short)
     # 501 bytes total
 };
-Data::CROD->create($filename, $hash);
-isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Dictionary::Byte',
+Data::CompactReadonly->create($filename, $hash);
+isa_ok($data = Data::CompactReadonly->read($filename), 'Data::CompactReadonly::V0::Dictionary::Byte',
     "got a Dictionary::Byte");
-isa_ok($data, 'Data::CROD::Dictionary', "and that isa Data::CROD::Dictionary");
+isa_ok($data, 'Data::CompactReadonly::Dictionary', "and that isa Data::CompactReadonly::Dictionary");
 is($data->count(), 17, "17 entries");
 is($data->_ptr_size(), 1, "pointers are 1 byte");
 is($data->element('float'),      3.14,        "read a Float");
@@ -135,10 +135,10 @@ is($data->element('null'),       undef,       "read a Null");
 is($data->element('text'),       'hi mum!',   "read a Text::Byte");
 is($data->element('hi mum!'),    'hi mum!',   "read the same text again (reused)");
 is($data->element('zzlongtext'), 'z' x 300,   "read a Text::Short");
-isa_ok($embedded_array = $data->element('array'), 'Data::CROD::V0::Array::Byte',
+isa_ok($embedded_array = $data->element('array'), 'Data::CompactReadonly::V0::Array::Byte',
     "read an array from the Dictionary");
 is($embedded_array->count(), 0, "array is empty");
-isa_ok(my $embedded_dict = $data->element('dict'), 'Data::CROD::V0::Dictionary::Byte',
+isa_ok(my $embedded_dict = $data->element('dict'), 'Data::CompactReadonly::V0::Dictionary::Byte',
     "read a dictionary from the Dictionary");
 is($embedded_dict->count(), 0, "dict is empty");
 is($data->element("\x{5317}\x{4eac}\x{5e02}"),
@@ -148,8 +148,8 @@ is($data->element('Beijing'), "\x{5317}\x{4eac}\x{5e02}",
 is((stat($filename))[7], 501, "file size is correct");
 
 $hash->{zzz} = 'say the bees'; # extra pair of pointers, plus 5 bytes for key, 14 bytes for value
-Data::CROD->create($filename, $hash);
-isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Dictionary::Byte',
+Data::CompactReadonly->create($filename, $hash);
+isa_ok($data = Data::CompactReadonly->read($filename), 'Data::CompactReadonly::V0::Dictionary::Byte',
     "got a Dictionary::Byte");
 is($data->count(), 18, "got a hash with 18 entries");
 is($data->_ptr_size(), 2, "pointers are 2 bytes");
@@ -172,10 +172,10 @@ $hash = {
 $hash->{dict} = $hash;
 $hash->{$_} = $_ foreach(0 .. 65536); # Dictionary::Medium, longer 3 byte pointers
 push @{$hash->{array}}, $hash->{array};
-Data::CROD->create($filename, $hash);
-isa_ok($data = Data::CROD->read($filename), 'Data::CROD::V0::Dictionary::Medium',
+Data::CompactReadonly->create($filename, $hash);
+isa_ok($data = Data::CompactReadonly->read($filename), 'Data::CompactReadonly::V0::Dictionary::Medium',
     "got a Dictionary::Medium");
-isa_ok($data, 'Data::CROD::Dictionary', "and that isa Data::CROD::Dictionary");
+isa_ok($data, 'Data::CompactReadonly::Dictionary', "and that isa Data::CompactReadonly::Dictionary");
 is($data->count(), 65547, "right number of elements");
 is($data->_ptr_size(), 3, "pointers are 3 bytes");
 is($data->element('array')->element(2)->element(0), 3,

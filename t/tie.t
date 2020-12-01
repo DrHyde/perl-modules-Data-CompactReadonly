@@ -6,11 +6,11 @@ use Test::More;
 use Test::Exception;
 use Test::Differences;
 
-use Data::CROD;
+use Data::CompactReadonly;
 
 (undef, my $filename) = tempfile(UNLINK => 1);
 
-Data::CROD->create($filename, [
+Data::CompactReadonly->create($filename, [
     [5, 4, 3, 2, 1, 0],
     {
         hash  => { lemon => 'curry' },
@@ -18,8 +18,8 @@ Data::CROD->create($filename, [
     },
     'fishfingers'
 ]);
-my $tied   = Data::CROD->read($filename, 'tie' => 1);
-my $untied = Data::CROD->read($filename);
+my $tied   = Data::CompactReadonly->read($filename, 'tie' => 1);
+my $untied = Data::CompactReadonly->read($filename);
 
 is($#{$tied}, $untied->count() - 1, "can de-ref and count elements in an Array");
 is($tied->[2], 'fishfingers', "can de-ref and retrieve an array element");
