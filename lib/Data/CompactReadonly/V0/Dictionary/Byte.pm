@@ -1,4 +1,5 @@
 package Data::CompactReadonly::V0::Dictionary::Byte;
+our $VERSION = '0.0.1';
 
 use warnings;
 use strict;

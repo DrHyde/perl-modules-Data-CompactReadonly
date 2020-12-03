@@ -1,4 +1,5 @@
 package Data::CompactReadonly::V0::TiedArray;
+our $VERSION = '0.0.1';
 
 use strict;
 use warnings;
