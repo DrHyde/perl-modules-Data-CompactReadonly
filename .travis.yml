@@ -1,9 +1,0 @@
-language: perl
-matrix:
-  include:
-    - perl: "5.20"
-      dist: trusty
-      before_install:
-        - cpanm --quiet --notest Devel::Cover::Report::Coveralls
-      script: "perl Makefile.PL && make && cover -ignore blib/lib/Data/CompactReadonly/Array.pm -ignore blib/lib/Data/CompactReadonly/Dictionary.pm -test -report coveralls"
-sudo: false
