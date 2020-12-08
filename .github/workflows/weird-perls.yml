@@ -22,6 +22,8 @@ jobs:
         run: |
             source ~/perl5/perlbrew/etc/bashrc
             perlbrew switch perl-5.32.0-${{ matrix.weirdness }}
+            perlbrew install-cpanm
+            perl -V|grep archname
             cpanm --installdeps .
             perl Makefile.PL
             make test
