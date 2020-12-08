@@ -1,0 +1,25 @@
+on: [push, pull_request]
+name: Weird perls
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        weirdness: [ 'uselongdouble', 'usequadmath' ]
+    name: Perl with ${{ matrix.weirdness }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build perl ...
+        run: |
+            curl -L https://install.perlbrew.pl | bash
+            ...
+
+      - name: run tests
+        env:
+          PERL_USE_UNSAFE_INC: 0
+        run: |
+            perlbrew switch ...
+            cpanm --installdeps .
+            perl Makefile.PL
+            make test
