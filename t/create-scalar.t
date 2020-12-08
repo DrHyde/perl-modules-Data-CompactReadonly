@@ -48,8 +48,10 @@ foreach my $length (1, 1000, 100000, 0x1000000) {
     my $filesize = 5 + 1 + (1 + int(log($length) / log(256))) + $length;
     my $value = 'x' x $length;
     Data::CompactReadonly->create($filename, $value);
-    is($data = Data::CompactReadonly->read($filename), $value, "can create an ASCII Text file ($length chars)");
-        is((stat($filename))[7], $filesize, "... file is expected size $filesize");
+    my $data = Data::CompactReadonly->read($filename);
+    ok($data eq $value, "can create an ASCII Text file ($length chars)") ||
+        diag("Got ".length($data)." bytes from the db; expected ".length($value));
+    is((stat($filename))[7], $filesize, "... file is expected size $filesize");
 }
 
 foreach my $length (1, 1000) {
