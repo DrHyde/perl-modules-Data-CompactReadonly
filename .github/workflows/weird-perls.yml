@@ -13,13 +13,15 @@ jobs:
       - name: Build perl ...
         run: |
             curl -L https://install.perlbrew.pl | bash
-            ...
+            source ~/perl5/perlbrew/etc/bashrc
+            perlbrew install --notest -D ${{ matrix.weirdness }} perl-5.32.0 --as perl-5.32.0-${{ matrix.weirdness }}
 
       - name: run tests
         env:
           PERL_USE_UNSAFE_INC: 0
         run: |
-            perlbrew switch ...
+            source ~/perl5/perlbrew/etc/bashrc
+            perlbrew switch perl-5.32.0-${{ matrix.weirdness }}
             cpanm --installdeps .
             perl Makefile.PL
             make test
