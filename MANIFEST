@@ -53,3 +53,4 @@ t/tie.t
 lib/Data/CompactReadonly/V0/TiedArray.pm
 lib/Data/CompactReadonly/V0/TiedDictionary.pm
 t/lib/TestFloat.pm
+t/bug-Number-Phone-1546702248.t

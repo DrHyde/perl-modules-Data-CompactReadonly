@@ -32,9 +32,9 @@ sub _create {
 sub _stash_already_seen {
     my($class, %args) = @_;
     if(defined($args{data})) {
-        $args{already_seen}->{d}->{$args{data}} = tell($args{fh});
+        $args{globals}->{already_seen}->{d}->{$args{data}} = tell($args{fh});
     } else {
-        $args{already_seen}->{u} = tell($args{fh});
+        $args{globals}->{already_seen}->{u} = tell($args{fh});
     }
 }
 
@@ -42,8 +42,18 @@ sub _stash_already_seen {
 sub _get_already_seen {
     my($class, %args) = @_;
     return defined($args{data})
-        ? $args{already_seen}->{d}->{$args{data}}
-        : $args{already_seen}->{u};
+        ? $args{globals}->{already_seen}->{d}->{$args{data}}
+        : $args{globals}->{already_seen}->{u};
+}
+
+sub _get_next_free_ptr {
+    my($class, %args) = @_;
+    return $args{globals}->{next_free_ptr};
+}
+
+sub _set_next_free_ptr {
+    my($class, %args) = @_;
+    $args{globals}->{next_free_ptr} = tell($args{fh});
 }
 
 # in case the database isn't at the beginning of a file, eg in __DATA__
@@ -207,11 +217,19 @@ sub _type_class {
 sub _bytes_at_current_offset {
     my($self, $bytes) = @_;
     my $tell = tell($self->_fh());
-    read($self->_fh(), my $data, $bytes) ||
+    my $chars_read = read($self->_fh(), my $data, $bytes);
+
+    if(!defined($chars_read)) {
         die(
-            "$self: sysread failed to read $bytes bytes at offset $tell\n".
+            "$self: read() failed to read $bytes bytes at offset $tell: $!\n".
             Devel::StackTrace->new()->as_string()
         );
+    } elsif($chars_read != $bytes) {
+        die(
+            "$self: read() tried to read $bytes bytes at offset $tell, got $chars_read: $!\n".
+            Devel::StackTrace->new()->as_string()
+        );
+    }
     return $data;
 }
 
