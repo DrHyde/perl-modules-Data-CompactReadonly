@@ -8,6 +8,7 @@ use Fcntl qw(:seek);
 
 use Devel::StackTrace;
 use Data::CompactReadonly::V0::Text;
+use Data::Dumper;
 
 # return the root node. assumes the $fh is pointing at the start of the node header
 sub _init {
@@ -28,11 +29,17 @@ sub _create {
 }
 
 # stash (in memory) of everything that we've seen while writing the database,
-# with a pointer to their location in the file so that it can be re-used.
+# with a pointer to their location in the file so that it can be re-used. We
+# even stash stringified Dicts/Arrays, which can eat a TON of memory. Yes, we
+# seem to need to local()ise the config vars in each sub.
 sub _stash_already_seen {
     my($class, %args) = @_;
+    local $Data::Dumper::Indent   = 0;
+    local $Data::Dumper::Sortkeys = 1;
     if(defined($args{data})) {
-        $args{globals}->{already_seen}->{d}->{$args{data}} = tell($args{fh});
+        $args{globals}->{already_seen}->{d}->{
+            ref($args{data}) ? Dumper($args{data}) : $args{data}
+        } = tell($args{fh});
     } else {
         $args{globals}->{already_seen}->{u} = tell($args{fh});
     }
@@ -41,8 +48,12 @@ sub _stash_already_seen {
 # look in the stash for data that we've seen before and get a pointer to it
 sub _get_already_seen {
     my($class, %args) = @_;
+    local $Data::Dumper::Indent   = 0;
+    local $Data::Dumper::Sortkeys = 1;
     return defined($args{data})
-        ? $args{globals}->{already_seen}->{d}->{$args{data}}
+        ? $args{globals}->{already_seen}->{d}->{
+              ref($args{data}) ? Dumper($args{data}) : $args{data}
+          }
         : $args{globals}->{already_seen}->{u};
 }
 
