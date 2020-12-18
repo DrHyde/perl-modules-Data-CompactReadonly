@@ -117,6 +117,7 @@ sub element {
 
 sub exists {
     my($self, $element) = @_;
+    return 0 if($self->count() == 0);
     eval { $self->element($element) };
     if($@ =~ /doesn't exist/) {
         return 0;
