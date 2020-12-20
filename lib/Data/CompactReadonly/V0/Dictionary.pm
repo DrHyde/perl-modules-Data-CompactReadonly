@@ -64,7 +64,10 @@ sub _create {
                 my $node_class = 'Data::CompactReadonly::V0::Node';
                 if($item->{coerce_to_text}) {
                     $node_class = 'Data::CompactReadonly::V0::'.$class->_text_type_for_data($item->{data});
-                    eval "use $node_class";
+                    unless($node_class->VERSION()) {
+                        eval "use $node_class";
+                        die($@) if($@);
+                    }
                 }
                 $node_class->_create(%args, data => $item->{data});
             }

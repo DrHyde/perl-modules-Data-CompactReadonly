@@ -219,8 +219,10 @@ sub _type_class {
     my($class, $from, $in_type) = @_;
     my $map_method = "_type_map_$from";
     my $type_name = "Data::CompactReadonly::V0::".$class->$map_method($in_type);
-    eval "use $type_name";
-    die($@) if($@);
+    unless($type_name->VERSION()) {
+        eval "use $type_name";
+        die($@) if($@);
+    }
     return $type_name;
 }
 
