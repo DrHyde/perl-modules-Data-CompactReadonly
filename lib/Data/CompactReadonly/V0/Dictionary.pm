@@ -11,14 +11,14 @@ use Devel::StackTrace;
 
 sub _init {
     my($class, %args) = @_;
-    my($parent, $offset) = @args{qw(parent offset)};
+    my($root, $offset) = @args{qw(root offset)};
 
     my $object = bless({
-        parent => $parent,
+        root => $root,
         offset => $offset
     }, $class);
 
-    if($parent->_tied()) {
+    if($root->_tied()) {
         tie my %dict, 'Data::CompactReadonly::V0::TiedDictionary', $object;
         return \%dict;
     } else {

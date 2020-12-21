@@ -9,10 +9,10 @@ use Encode qw(encode decode);
 
 sub _init {
     my($class, %args) = @_;
-    my($parent, $offset) = @args{qw(parent offset)};
+    my($root, $offset) = @args{qw(root offset)};
 
-    my $length = $class->_numeric_type_for_length()->_init(parent => $parent, offset => $offset);
-    my $value  = $class->_bytes_to_text($parent->_bytes_at_current_offset($length));
+    my $length = $class->_numeric_type_for_length()->_init(root => $root, offset => $offset);
+    my $value  = $class->_bytes_to_text($root->_bytes_at_current_offset($length));
 
     return $value;
 }

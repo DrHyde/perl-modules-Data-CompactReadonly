@@ -17,7 +17,7 @@ sub _numeric_type_for_length {
 sub count {
     my $self = shift;
     $self->_seek($self->_offset());
-    return $self->_numeric_type_for_length()->_init(parent => $self->_parent());
+    return $self->_numeric_type_for_length()->_init(root => $self->_root());
 }
 
 sub id {

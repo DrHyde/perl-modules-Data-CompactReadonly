@@ -14,6 +14,7 @@ use Data::Dumper;
 sub _init {
     my($class, %args) = @_;
     my $self = bless(\%args, $class);
+    $self->{root} = $self;
     return $self->_node_at_current_offset();
 }
 
@@ -84,7 +85,7 @@ sub _node_at_current_offset {
     my $self = shift;
 
     my $type_class = $self->_type_class(from_byte => $self->_bytes_at_current_offset(1));
-    return $type_class->_init(parent => $self, offset => tell($self->_fh()) - $self->_db_base());
+    return $type_class->_init(root => $self->_root(), offset => tell($self->_fh()) - $self->_db_base());
 }
 
 # what's the minimum number of bytes required to store this int?
@@ -272,17 +273,9 @@ sub _offset {
     return $self->{offset};
 }
 
-# the parent object for this node
-sub _parent {
-    my $self = shift;
-    return exists($self->{parent}) ? $self->{parent} : undef;
-}
-
-# call _parent iteratively to find the root node
 sub _root {
     my $self = shift;
-    while($self->_parent()) { $self = $self->_parent(); }
-    return $self;
+    return $self->{root};
 }
 
 # the filehandle, currently only used when reading, see the TODO above

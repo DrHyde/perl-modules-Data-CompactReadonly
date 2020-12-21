@@ -7,9 +7,9 @@ use base 'Data::CompactReadonly::V0::Node';
 
 sub _init {
     my($class, %args) = @_;
-    my $parent = $args{parent};
+    my $root = $args{root};
     
-    my $word = $parent->_bytes_at_current_offset($class->_num_bytes());
+    my $word = $root->_bytes_at_current_offset($class->_num_bytes());
     return $class->_decode_word($word);
 }
 
