@@ -84,8 +84,10 @@ sub _tied {
 sub _node_at_current_offset {
     my $self = shift;
 
+    # for performance, cache the filehandle in this object
+    $self->{_fh} ||= $self->_fh();
     my $type_class = $self->_type_class(from_byte => $self->_bytes_at_current_offset(1));
-    return $type_class->_init(root => $self->_root(), offset => tell($self->_fh()) - $self->_db_base());
+    return $type_class->_init(root => $self->_root(), offset => tell($self->{_fh}) - $self->_db_base());
 }
 
 # what's the minimum number of bytes required to store this int?
@@ -230,8 +232,10 @@ sub _type_class {
 # read N bytes from the current offset
 sub _bytes_at_current_offset {
     my($self, $bytes) = @_;
-    my $tell = tell($self->_fh());
-    my $chars_read = read($self->_fh(), my $data, $bytes);
+    # for performance, cache the filehandle in this object
+    $self->{_fh} ||= $self->_fh();
+    my $tell = tell($self->{_fh});
+    my $chars_read = read($self->{_fh}, my $data, $bytes);
 
     if(!defined($chars_read)) {
         die(
@@ -255,8 +259,10 @@ sub _bytes_at_current_offset {
 sub _seek {
     my $self = shift;
     if($#_ == 0) { # for when reading
-        my $to   = shift;
-        seek($self->_fh(), $self->_db_base() + $to, SEEK_SET);
+        my $to = shift;
+        # for performance, cache the filehandle in this object
+        $self->{_fh} ||= $self->_fh();
+        seek($self->{_fh}, $self->_db_base() + $to, SEEK_SET);
     } else { # for when writing
         my %args = @_;
         die($self->_ptr_blown())

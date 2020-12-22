@@ -137,7 +137,9 @@ sub _nth_key {
     $self->_seek($self->_nth_key_ptr_location($n));
     $self->_seek($self->_ptr_at_current_offset());
 
-    my $offset = tell($self->_fh());
+    # for performance, cache the filehandle in this object
+    $self->{_fh} ||= $self->_fh();
+    my $offset = tell($self->{_fh});
     my $key = $self->_node_at_current_offset();
     if(!defined($key) || ref($key)) {
         die("$self: Invalid type: ".
