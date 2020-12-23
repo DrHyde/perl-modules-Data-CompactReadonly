@@ -167,6 +167,25 @@ sub _type_map_from_data {
              : die("Can't yet create from '$data'\n");
 }
 
+my $type_by_bits = {
+    0b00 => 'Text',
+    0b01 => 'Array',
+    0b10 => 'Dictionary',
+    0b11 => 'Scalar'
+};
+my $subtype_by_bits = { 
+    0b0000 => 'Byte',      0b0001 => 'NegativeByte',
+    0b0010 => 'Short',     0b0011 => 'NegativeShort',
+    0b0100 => 'Medium',    0b0101 => 'NegativeMedium',
+    0b0110 => 'Long',      0b0111 => 'NegativeLong',
+    0b1000 => 'Huge',      0b1001 => 'NegativeHuge',
+    0b1010 => 'Null',
+    0b1011 => 'Float',
+    (map { $_ => 'Reserved' } (0b1100 .. 0b1111))
+};
+my $bits_by_type    = { reverse %{$type_by_bits} };
+my $bits_by_subtype = { reverse %{$subtype_by_bits} };
+
 # used by classes when serialising themselves to figure out what their
 # type specifier byte should be
 sub _type_byte_from_class {
@@ -174,31 +193,9 @@ sub _type_byte_from_class {
     $class =~ /.*::([^:]+)::([^:]+)/;
     my($type, $subtype) = ($1, $2);
     return chr(
-        ({ reverse($class->_type_by_bits())    }->{$type}    << 6) +
-        ({ reverse($class->_subtype_by_bits()) }->{$subtype} << 2)
+        ($bits_by_type->{$type}       << 6) +
+        ($bits_by_subtype->{$subtype} << 2)
     );
-}
-
-sub _type_by_bits {
-    (
-        0b00 => 'Text',
-        0b01 => 'Array',
-        0b10 => 'Dictionary',
-        0b11 => 'Scalar'
-    )
-}
-
-sub _subtype_by_bits {
-    (
-        0b0000 => 'Byte',      0b0001 => 'NegativeByte',
-        0b0010 => 'Short',     0b0011 => 'NegativeShort',
-        0b0100 => 'Medium',    0b0101 => 'NegativeMedium',
-        0b0110 => 'Long',      0b0111 => 'NegativeLong',
-        0b1000 => 'Huge',      0b1001 => 'NegativeHuge',
-        0b1010 => 'Null',
-        0b1011 => 'Float',
-        (map { $_ => 'Reserved' } (0b1100 .. 0b1111))
-    )
 }
 
 # work out what node type is represented by a given node specifier byte
@@ -206,8 +203,8 @@ sub _type_map_from_byte {
     my $class   = shift;
     my $in_type = ord(shift());
 
-    my $type        = { $class->_type_by_bits()    }->{$in_type >> 6};
-    my $scalar_type = { $class->_subtype_by_bits() }->{($in_type & 0b111100) >> 2};
+    my $type        = $type_by_bits->{$in_type >> 6};
+    my $scalar_type = $subtype_by_bits->{($in_type & 0b111100) >> 2};
 
     die(sprintf("$class: Invalid type: 0b%08b: Reserved\n", $in_type))
         if($scalar_type eq 'Reserved');
