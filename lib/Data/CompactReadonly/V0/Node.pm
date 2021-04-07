@@ -1,5 +1,5 @@
 package Data::CompactReadonly::V0::Node;
-our $VERSION = '0.0.4';
+our $VERSION = '0.0.5';
 
 use warnings;
 use strict;
@@ -72,6 +72,11 @@ sub _set_next_free_ptr {
 sub _db_base {
     my $self = shift;
     return $self->_root()->{db_base};
+}
+
+sub _fast_collections {
+    my $self = shift;
+    return $self->_root()->{'fast_collections'};
 }
 
 sub _tied {

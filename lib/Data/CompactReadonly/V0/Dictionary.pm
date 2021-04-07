@@ -1,5 +1,5 @@
 package Data::CompactReadonly::V0::Dictionary;
-our $VERSION = '0.0.4';
+our $VERSION = '0.0.5';
 
 use warnings;
 use strict;
@@ -14,8 +14,9 @@ sub _init {
     my($root, $offset) = @args{qw(root offset)};
 
     my $object = bless({
-        root => $root,
-        offset => $offset
+        root   => $root,
+        offset => $offset,
+        cache  => ($root->_fast_collections() ? {} : undef),
     }, $class);
 
     if($root->_tied()) {
@@ -133,7 +134,10 @@ sub exists {
 
 sub _nth_key {
     my($self, $n) = @_;
-
+    if($self->{cache} && exists($self->{cache}->{keys}->{$n})) {
+        return $self->{cache}->{keys}->{$n}
+    }
+    
     $self->_seek($self->_nth_key_ptr_location($n));
     $self->_seek($self->_ptr_at_current_offset());
 
@@ -150,7 +154,27 @@ sub _nth_key {
             Devel::StackTrace->new()->as_string()
         );
     }
+    if($self->{cache}) {
+        return $self->{cache}->{keys}->{$n} = $key;
+    }
     return $key;
+}
+
+sub _nth_value {
+    my($self, $n) = @_;
+    if($self->{cache} && exists($self->{cache}->{values}->{$n})) {
+        return $self->{cache}->{values}->{$n}
+    }
+
+    $self->_seek($self->_nth_key_ptr_location($n) + $self->_ptr_size());
+    $self->_seek($self->_ptr_at_current_offset());
+
+    my $val = $self->_node_at_current_offset();
+
+    if($self->{cache}) {
+        return $self->{cache}->{values}->{$n} = $val;
+    }
+    return $val;
 }
 
 sub _nth_key_ptr_location {
@@ -164,15 +188,6 @@ sub _ptr_at_current_offset {
     return $self->_decode_ptr(
         $self->_bytes_at_current_offset($self->_ptr_size())
     );
-}
-
-sub _nth_value {
-    my($self, $n) = @_;
-
-    $self->_seek($self->_nth_key_ptr_location($n) + $self->_ptr_size());
-    $self->_seek($self->_ptr_at_current_offset());
-
-    return $self->_node_at_current_offset();
 }
 
 sub indices {
