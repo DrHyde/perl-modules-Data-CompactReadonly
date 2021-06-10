@@ -156,10 +156,10 @@ sub _type_map_from_data {
                  $bytes == 3 ? "Scalar::${neg}Medium" :
                  $bytes == 4 ? "Scalar::${neg}Long"   :
                  $bytes <  9 ? "Scalar::${neg}Huge"
-                             : "Scalar::Float"
+                             : "Scalar::Float64"
                } :
            is_number($data)
-             ? 'Scalar::Float' :
+             ? 'Scalar::Float64' :
            !ref($data)
              ? $class->_text_type_for_data($data)
              : die("Can't yet create from '$data'\n");
@@ -178,7 +178,7 @@ my $subtype_by_bits = {
     0b0110 => 'Long',      0b0111 => 'NegativeLong',
     0b1000 => 'Huge',      0b1001 => 'NegativeHuge',
     0b1010 => 'Null',
-    0b1011 => 'Float',
+    0b1011 => 'Float64',
     (map { $_ => 'Reserved' } (0b1100 .. 0b1111))
 };
 my $bits_by_type    = { reverse %{$type_by_bits} };
@@ -207,7 +207,7 @@ sub _type_map_from_byte {
     die(sprintf("$class: Invalid type: 0b%08b: Reserved\n", $in_type))
         if($scalar_type eq 'Reserved');
     die(sprintf("$class: Invalid type: 0b%08b: length $scalar_type\n", $in_type))
-        if($type ne 'Scalar' && $scalar_type =~ /^(Null|Float|Negative|Huge)/);
+        if($type ne 'Scalar' && $scalar_type =~ /^(Null|Float64|Negative|Huge)/);
     return join('::', $type, $scalar_type);
 }
 

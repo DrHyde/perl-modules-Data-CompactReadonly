@@ -31,7 +31,7 @@ lib/Data/CompactReadonly/V0/Format.pod
 lib/Data/CompactReadonly/V0/NegativeScalar.pm
 lib/Data/CompactReadonly/V0/Node.pm
 lib/Data/CompactReadonly/V0/Scalar/Byte.pm
-lib/Data/CompactReadonly/V0/Scalar/Float.pm
+lib/Data/CompactReadonly/V0/Scalar/Float64.pm
 lib/Data/CompactReadonly/V0/Scalar/Huge.pm
 lib/Data/CompactReadonly/V0/Scalar/Long.pm
 lib/Data/CompactReadonly/V0/Scalar/Medium.pm

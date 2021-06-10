@@ -1,4 +1,4 @@
-package Data::CompactReadonly::V0::Scalar::Float;
+package Data::CompactReadonly::V0::Scalar::Float64;
 our $VERSION = '0.0.6';
 
 use warnings;

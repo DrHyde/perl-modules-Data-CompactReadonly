@@ -24,13 +24,13 @@ foreach my $tuple (
     [0x010203,             9],
     [0x01020304,          10],
     [0xFFFFFFFF0,         14], # Huge, will require zero-padding
-    [0x10000000000000000, 14], # too big for a Huge, encoded as Float
+    [0x10000000000000000, 14], # too big for a Huge, encoded as Float64
 ) {
     my($value, $filesize) = @{$tuple};
     foreach my $value ($value, -$value) {
         Data::CompactReadonly->create($filename, $value);
         is($data = Data::CompactReadonly->read($filename), $value,
-            abs($value) == 0x10000000000000000 ? "auto-promoted humungo-Int to a Float" :
+            abs($value) == 0x10000000000000000 ? "auto-promoted humungo-Int to a Float64" :
                                                  "can create an Int file ($value)"
         );
         is((stat($filename))[7], $filesize, "... file is expected size for data $value") || diag(`hexdump -C $filename`);
@@ -40,7 +40,7 @@ foreach my $tuple (
 # normal size, practically zero, ginormously -ve
 foreach my $value (5.1413, 81.72e-50, -1.37e100/3) {
     Data::CompactReadonly->create($filename, $value);
-    cmp_float($data = Data::CompactReadonly->read($filename), $value, "can create a Float file ($value)");
+    cmp_float($data = Data::CompactReadonly->read($filename), $value, "can create a Float64 file ($value)");
 }
 
 foreach my $length (1, 1000, 100000, 0x1000000) {
@@ -69,16 +69,16 @@ foreach my $test ( # torture tests
     [007,     7,  'Int'],
     ['7',     8,  'Text'],
     [7,       7,  'Int'],
-    [7.0,     14, 'Float'],
+    [7.0,     14, 'Float64'],
     ['000',   10, 'Text'],
     ['0',     8,  'Text'],
     [0,       7,  'Int'],
-    [0.0,     14, 'Float'],
+    [0.0,     14, 'Float64'],
     ['00.7',  11, 'Text'],
     ['00.07', 12, 'Text'],
-    [0.07,    14, 'Float'],
+    [0.07,    14, 'Float64'],
     ['0.07',  11, 'Text'],
-    [7.01,    14, 'Float'],
+    [7.01,    14, 'Float64'],
     ['7.01',  11, 'Text'],
     ['7.0',   10, 'Text'],
     ['7.00',  11, 'Text'],
@@ -92,7 +92,7 @@ foreach my $test ( # torture tests
     $type eq 'Text' ?
         ok($data eq $value, "can create a file with text value '$value'") &&
         is(type($data), 'SCALAR', "... and read back an SV of the right type"):
-    $type eq 'Float' ?
+    $type eq 'Float64' ?
         cmp_float($data, $value, "can create a file with float value $value") &&
         is(type($data), 'NUMBER', "... and read back an SV of the right type"):
     $type eq 'Int' ?

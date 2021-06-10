@@ -39,8 +39,8 @@ throws_ok { Data::CompactReadonly->read($fh) }
 
 open($fh, '<', \"$header_bytes${b00101100}");
 throws_ok { Data::CompactReadonly->read($fh) }
-    qr/Invalid type: 0b00101100: length Float/,
-    "invalid Float length type b00101100 throws a wobbly";
+    qr/Invalid type: 0b00101100: length Float64/,
+    "invalid Float64 length type b00101100 throws a wobbly";
 
 foreach my $length_type (0b1100 .. 0b1111) {
     my $type = chr($length_type << 2);

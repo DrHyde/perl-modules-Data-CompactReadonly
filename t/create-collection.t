@@ -29,7 +29,7 @@ my $array = [
     "apple",     # Text::Byte,      7 bytes
     0x1,         # Scalar::Byte,    2 bytes
     0x100,       # Scalar::Short,   3 bytes 
-    3.4,         # Scalar::Float,   9 bytes
+    3.4,         # Scalar::Float64, 9 bytes
     0x12345678,  # Scalar::Long,    5 bytes
     0x100000000, # Scalar::Huge,    9 bytes
     0x100000000, # Scalar::Huge, no storage, same as one already in db
@@ -53,7 +53,7 @@ is($data->element(7), 0x100000000, "read a Huge");
 is($data->element(8), 0x100000000, "read another Huge");
 is($data->element(9), 'apple',     "read another Text");
 is($data->element(10), 'x' x 256,  "read another Text");
-cmp_float($data->element(5), 3.4,  "read a Float");
+cmp_float($data->element(5), 3.4,  "read a Float64");
 is((stat($filename))[7], 317, "file size is correct");
 
 push @{$array}, [], $array;
@@ -76,7 +76,7 @@ is($data->element(7), 0x100000000, "read a Huge");
 is($data->element(8), 0x100000000, "read another Huge");
 is($data->element(9), 'apple',     "read another Text");
 is($data->element(10), 'x' x 256,  "read a Text::Short");
-cmp_float($data->element(5), 3.4,  "read a Float");
+cmp_float($data->element(5), 3.4,  "read a Float64");
 isa_ok(my $embedded_array = $data->element(11), 'Data::CompactReadonly::V0::Array::Byte',
     "can embed an array in an array");
 is($embedded_array->count(), 0, "sub-array is empty");
@@ -127,7 +127,7 @@ isa_ok($data = Data::CompactReadonly->read($filename), 'Data::CompactReadonly::V
 isa_ok($data, 'Data::CompactReadonly::Dictionary', "and that isa Data::CompactReadonly::Dictionary");
 is($data->count(), 17, "17 entries");
 is($data->_ptr_size(), 1, "pointers are 1 byte");
-cmp_float($data->element('float'), 3.14,        "read a Float");
+cmp_float($data->element('float'), 3.14,        "read a Float64");
 is($data->element('byte'),         65,          "read a Byte");
 is($data->element('short'),        65534,       "read a Short");
 is($data->element('medium'),       65536,       "read a Medium");
