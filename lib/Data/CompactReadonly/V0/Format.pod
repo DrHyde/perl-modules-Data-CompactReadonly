@@ -60,6 +60,10 @@ integer numeric types are also available as NegativeByte, NegativeMedium and so 
 
 =item Null
 
+=item True
+
+=item False
+
 =back
 
 =item Collection types
