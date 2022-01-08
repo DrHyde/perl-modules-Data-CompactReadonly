@@ -148,7 +148,9 @@ a Null dictionary entry.
 
 =head1 UNSUPPORTED PERL TYPES
 
-Globs, Regexes, References (except to Arrays and Dictionaries)
+Globs, Regexes, References (except to Arrays and Dictionaries).
+
+Boolean keys in Dictionaries will be silently stringified when creating a database.
 
 =head1 BUGS/FEEDBACK
 

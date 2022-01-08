@@ -38,7 +38,11 @@ sub _stash_already_seen {
     my($class, %args) = @_;
     local $Data::Dumper::Indent   = 0;
     local $Data::Dumper::Sortkeys = 1;
-    if(defined($args{data})) {
+    if(bool_supported && is_bool($args{data})) {
+        $args{globals}->{already_seen}->{
+            $args{data} ? 'bt' : 'bf'
+        } = tell($args{fh});
+    } elsif(defined($args{data})) {
         $args{globals}->{already_seen}->{d}->{
             ref($args{data}) ? Dumper($args{data}) : $args{data}
         } = tell($args{fh});
@@ -52,11 +56,19 @@ sub _get_already_seen {
     my($class, %args) = @_;
     local $Data::Dumper::Indent   = 0;
     local $Data::Dumper::Sortkeys = 1;
-    return defined($args{data})
-        ? $args{globals}->{already_seen}->{d}->{
-              ref($args{data}) ? Dumper($args{data}) : $args{data}
-          }
-        : $args{globals}->{already_seen}->{u};
+
+    if(bool_supported && is_bool($args{data})) {
+        return
+            $args{data} ? $args{globals}->{already_seen}->{bt}
+                        : $args{globals}->{already_seen}->{bf}
+    } elsif(defined($args{data})) {
+        return
+            $args{globals}->{already_seen}->{d}->{
+                ref($args{data}) ? Dumper($args{data}) : $args{data}
+            }
+    } else {
+        return $args{globals}->{already_seen}->{u};
+    }
 }
 
 sub _get_next_free_ptr {
