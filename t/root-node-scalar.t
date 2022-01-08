@@ -10,6 +10,7 @@ use TestFloat;
 use File::Temp qw(tempfile);
 use String::Binary::Interpolation;
 use Data::IEEE754 qw(pack_double_be);
+use Scalar::Type qw(bool_supported is_bool);
 
 use Data::CompactReadonly;
 
@@ -56,7 +57,21 @@ subtest 'floats' => sub {
 open(my $fh, '<', \"$header_bytes${b11101000}");
 is(Data::CompactReadonly->read($fh), undef, "can read a Null (undef)");
 
-foreach my $scalar_type (0b1100 .. 0b1111) {
+open($fh, '<', \"$header_bytes${b11110000}");
+my $true = Data::CompactReadonly->read($fh);
+ok($true, "can read a True");
+if(bool_supported) {
+    ok(is_bool($true), "and on super-modern perl the Boolean flag is set correctly");
+} 
+
+open($fh, '<', \"$header_bytes${b11110100}");
+my $false = Data::CompactReadonly->read($fh);
+ok(!$false, "can read a False");
+if(bool_supported) {
+    ok(is_bool($false), "and on super-modern perl the Boolean flag is set correctly");
+} 
+
+foreach my $scalar_type (0b1110 .. 0b1111) {
     my $type = chr(($scalar_type << 2) + 0b11000000);
     my $binary = sprintf('0b%08b', ord($type));
     open($fh, '<', \"$header_bytes$type");

@@ -5,7 +5,7 @@ use warnings;
 use strict;
 
 use Fcntl qw(:seek);
-use Scalar::Type qw(is_*);
+use Scalar::Type qw(is_* bool_supported);
 
 use Devel::StackTrace;
 use Data::CompactReadonly::V0::Text;
@@ -132,13 +132,13 @@ sub _text_type_for_data {
     };
 }
 
-# work out what node type is required to represent a piece of data. At least in
-# the case of numbers it might be better to look at the SV, as this won't distinguish
-# between 2 (the number) and "2" (the string).
+# work out what node type is required to represent a piece of data
 sub _type_map_from_data {
     my($class, $data) = @_;
     return !defined($data)
              ? 'Scalar::Null' :
+           (bool_supported && is_bool($data))
+             ? 'Scalar::Bool::'.($data ? 'True' : 'False') :
            ref($data) eq 'ARRAY'
              ? 'Array::'.do { $class->_sub_type_for_collection_of_length(1 + $#{$data}) ||
                               die("$class: Invalid: Array too long");
@@ -179,7 +179,9 @@ my $subtype_by_bits = {
     0b1000 => 'Huge',      0b1001 => 'NegativeHuge',
     0b1010 => 'Null',
     0b1011 => 'Float64',
-    (map { $_ => 'Reserved' } (0b1100 .. 0b1111))
+    0b1100 => 'Bool::True',
+    0b1101 => 'Bool::False',
+    (map { $_ => 'Reserved' } (0b1110 .. 0b1111))
 };
 my $bits_by_type    = { reverse %{$type_by_bits} };
 my $bits_by_subtype = { reverse %{$subtype_by_bits} };
@@ -207,7 +209,7 @@ sub _type_map_from_byte {
     die(sprintf("$class: Invalid type: 0b%08b: Reserved\n", $in_type))
         if($scalar_type eq 'Reserved');
     die(sprintf("$class: Invalid type: 0b%08b: length $scalar_type\n", $in_type))
-        if($type ne 'Scalar' && $scalar_type =~ /^(Null|Float64|Negative|Huge)/);
+        if($type ne 'Scalar' && $scalar_type =~ /^(Null|Float64|Negative|Huge|Bool::True|Bool::False)/);
     return join('::', $type, $scalar_type);
 }
 

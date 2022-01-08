@@ -1,7 +1,8 @@
 X.X.X    XXXX-XX-XX
 
 - Float type renamed to Float64 in preparation for support for different length floats
-  (no functional or format changes)
+  (no functional or format changes from previous floating point behaviour)
+- Add support for Boolean types (in perl 5.35.7 and later)
 
 0.0.6    2021-06-04
 

@@ -123,7 +123,11 @@ Byte, Short, Medium, and Long are valid for lengths.
 
     0b1011 - Float64
 
-Any unspecified bits or combinations of bits are reserved for future use.
+    0b1100 - True
+
+    0b1101 - False
+
+Any unspecified bits or combinations of bits are reserved for future use. Unspecified bits should be set to zero if you want your data to be compatible with future versions.
 
 =head2 NODE DATA
 
@@ -131,7 +135,7 @@ Any unspecified bits or combinations of bits are reserved for future use.
 
 The header is followed by the appropriate number of bytes of data.
 
-=head3 NULL NODES
+=head3 NULL, TRUE and FALSE NODES
 
 These are just a header.
 

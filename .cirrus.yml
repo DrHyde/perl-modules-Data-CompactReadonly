@@ -11,13 +11,25 @@ task:
     - make test
 
 task:
-  name: MacOS
+  matrix:
+    - name: MacOS, perl 5.30.3
+      env:
+        PERLVER: 5.30.3
+    - name: MacOS, perl 5.35.7
+      env:
+        PERLVER: 5.35.7
   osx_instance:
     image: catalina-xcode-12.0
   test_script:
-    - echo|cpan App::cpanminus
-    - export PERL5LIB=/Users/admin/perl5/lib/perl5
-    - /Users/admin/perl5/bin/cpanm --installdeps .
+    - curl -L https://install.perlbrew.pl | bash
+    - source ~/perl5/perlbrew/etc/bashrc
+    - perlbrew init
+    - perlbrew install -n perl-$PERLVER
+    - perlbrew switch perl-$PERLVER
+    - perlbrew install-cpanm -f
+    - perl -v
+    - cpanm TAP::Harness::Env
+    - cpanm --installdeps . || cat /Users/admin/.cpanm/work/*/build.log
     - perl Makefile.PL
     - make
     - make test

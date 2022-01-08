@@ -45,7 +45,17 @@ throws_ok { Data::CompactReadonly->read($fh) }
     qr/Invalid type: 0b00101100: length Float64/,
     "invalid Float64 length type b00101100 throws a wobbly";
 
-foreach my $length_type (0b1100 .. 0b1111) {
+open($fh, '<', \"$header_bytes${b00110000}");
+throws_ok { Data::CompactReadonly->read($fh) }
+    qr/Invalid type: 0b00110000: length Bool::True/,
+    "invalid Float64 length type b00101100 throws a wobbly";
+
+open($fh, '<', \"$header_bytes${b00110100}");
+throws_ok { Data::CompactReadonly->read($fh) }
+    qr/Invalid type: 0b00110100: length Bool::False/,
+    "invalid Float64 length type b00101100 throws a wobbly";
+
+foreach my $length_type (0b1110 .. 0b1111) {
     my $type = chr($length_type << 2);
     my $binary = sprintf('0b%08b', ord($type));
     open($fh, '<', \"$header_bytes$type");
