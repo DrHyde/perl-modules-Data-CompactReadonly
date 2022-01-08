@@ -12,7 +12,7 @@ task:
 
 task:
   matrix:
-    - name: MacOS, perl 5.30.3
+    - name: MacOS
       env:
         PERLVER: 5.30.3
     - name: MacOS, perl 5.35.7
