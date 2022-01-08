@@ -1,4 +1,4 @@
-X.X.X    XXXX-XX-XX
+0.1.0    2022-01-08
 
 - Float type renamed to Float64 in preparation for support for different length floats
   (no functional or format changes from previous floating point behaviour)
