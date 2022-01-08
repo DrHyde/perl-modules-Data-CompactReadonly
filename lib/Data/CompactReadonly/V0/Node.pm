@@ -138,7 +138,7 @@ sub _type_map_from_data {
     return !defined($data)
              ? 'Scalar::Null' :
            (bool_supported && is_bool($data))
-             ? 'Scalar::Bool::'.($data ? 'True' : 'False') :
+             ? 'Scalar::'.($data ? 'True' : 'False') :
            ref($data) eq 'ARRAY'
              ? 'Array::'.do { $class->_sub_type_for_collection_of_length(1 + $#{$data}) ||
                               die("$class: Invalid: Array too long");
@@ -179,8 +179,8 @@ my $subtype_by_bits = {
     0b1000 => 'Huge',      0b1001 => 'NegativeHuge',
     0b1010 => 'Null',
     0b1011 => 'Float64',
-    0b1100 => 'Bool::True',
-    0b1101 => 'Bool::False',
+    0b1100 => 'True',
+    0b1101 => 'False',
     (map { $_ => 'Reserved' } (0b1110 .. 0b1111))
 };
 my $bits_by_type    = { reverse %{$type_by_bits} };
@@ -209,7 +209,7 @@ sub _type_map_from_byte {
     die(sprintf("$class: Invalid type: 0b%08b: Reserved\n", $in_type))
         if($scalar_type eq 'Reserved');
     die(sprintf("$class: Invalid type: 0b%08b: length $scalar_type\n", $in_type))
-        if($type ne 'Scalar' && $scalar_type =~ /^(Null|Float64|Negative|Huge|Bool::True|Bool::False)/);
+        if($type ne 'Scalar' && $scalar_type =~ /^(Null|Float64|Negative|Huge|True|False)/);
     return join('::', $type, $scalar_type);
 }
 

@@ -47,12 +47,12 @@ throws_ok { Data::CompactReadonly->read($fh) }
 
 open($fh, '<', \"$header_bytes${b00110000}");
 throws_ok { Data::CompactReadonly->read($fh) }
-    qr/Invalid type: 0b00110000: length Bool::True/,
+    qr/Invalid type: 0b00110000: length True/,
     "invalid Float64 length type b00101100 throws a wobbly";
 
 open($fh, '<', \"$header_bytes${b00110100}");
 throws_ok { Data::CompactReadonly->read($fh) }
-    qr/Invalid type: 0b00110100: length Bool::False/,
+    qr/Invalid type: 0b00110100: length False/,
     "invalid Float64 length type b00101100 throws a wobbly";
 
 foreach my $length_type (0b1110 .. 0b1111) {

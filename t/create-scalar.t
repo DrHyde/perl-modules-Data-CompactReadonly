@@ -17,6 +17,20 @@ use Data::CompactReadonly;
 Data::CompactReadonly->create($filename, undef);
 is(my $data = Data::CompactReadonly->read($filename), undef, "can create a Null file");
 
+Data::CompactReadonly->create($filename, 1 == 1);
+my $true = Data::CompactReadonly->read($filename);
+ok($true, "can create a True file");
+if(bool_supported) {
+    ok(is_bool($true), "and on super-modern perl the Boolean flag is set correctly");
+} 
+
+Data::CompactReadonly->create($filename, 1 == 0);
+my $false = Data::CompactReadonly->read($filename);
+ok(!$false, "can create a False file");
+if(bool_supported) {
+    ok(is_bool($false), "and on super-modern perl the Boolean flag is set correctly");
+} 
+
 foreach my $tuple (
     [0,                    7], # Byte
     [0x01,                 7],
