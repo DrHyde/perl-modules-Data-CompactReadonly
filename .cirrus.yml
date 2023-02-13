@@ -11,25 +11,12 @@ task:
     - make test
 
 task:
-  matrix:
-    - name: MacOS
-      env:
-        PERLVER: 5.30.3
-    - name: MacOS, perl 5.35.7
-      env:
-        PERLVER: 5.35.7
+  name: MacOS
   macos_instance:
     image: ghcr.io/cirruslabs/macos-ventura-base:latest
   test_script:
-    - curl -L https://install.perlbrew.pl | bash
-    - source ~/perl5/perlbrew/etc/bashrc
-    - perlbrew init
-    - perlbrew install -n perl-$PERLVER
-    - perlbrew switch perl-$PERLVER
-    - perlbrew install-cpanm -f
-    - perl -v
-    - cpanm TAP::Harness::Env
-    - cpanm --installdeps . || cat /Users/admin/.cpanm/work/*/build.log
+    - echo|cpan App::cpanminus
+    - /Users/admin/perl5/bin/cpanm --installdeps .
     - perl Makefile.PL
     - make
     - make test
