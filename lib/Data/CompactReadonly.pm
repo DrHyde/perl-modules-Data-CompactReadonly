@@ -11,7 +11,7 @@ our $VERSION = '0.1.0';
 
 =head1 NAME
 
-Data::CompactReadonly
+Data::CompactReadonly - create Compact Read Only Databases
 
 =head1 DESCRIPTION
 
