@@ -6,3 +6,4 @@
 .cirrus.yml
 cover_db/
 TODO
+^../XML-Tiny/workflow-templates
