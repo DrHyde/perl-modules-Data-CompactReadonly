@@ -1,0 +1,2 @@
+- '-Duselongdouble'
+- '-Dusequadmath'

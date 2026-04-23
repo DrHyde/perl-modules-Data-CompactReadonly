@@ -1,3 +1,5 @@
+# Auto-generated file, see workflow-templates/weird-perls.yml
+
 on: [push, pull_request]
 name: Weird perls
 jobs:
@@ -5,26 +7,27 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        weirdness: [ 'uselongdouble', 'usequadmath' ]
+        weirdness:
+          - '-Duselongdouble'
+          - '-Dusequadmath'
     name: Perl with ${{ matrix.weirdness }}
     steps:
       - uses: actions/checkout@v6
-
       - name: Build perl ...
         run: |
             curl -L https://install.perlbrew.pl | bash
             source ~/perl5/perlbrew/etc/bashrc
             yes|sudo perl -MCPAN -e 'CPAN::Shell->notest("install","Devel::PatchPerl")'
-            perlbrew install --notest -D ${{ matrix.weirdness }} perl-5.32.0 --as perl-5.32.0-${{ matrix.weirdness }}
-
+            perlbrew install --notest ${{ matrix.weirdness }} perl-5.42.0 --as perl-5.42.0-${{ matrix.weirdness }}
       - name: run tests
         env:
           PERL_USE_UNSAFE_INC: 0
         run: |
             source ~/perl5/perlbrew/etc/bashrc
-            perlbrew switch perl-5.32.0-${{ matrix.weirdness }}
+            perlbrew switch perl-5.42.0-${{ matrix.weirdness }}
             perlbrew install-cpanm
             perl -V|grep archname
+            perl -V|grep .vsize
             cpanm --installdeps .
             perl Makefile.PL
             make test
