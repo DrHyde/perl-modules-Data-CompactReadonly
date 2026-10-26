@@ -9,8 +9,10 @@ use 5.8.9;
 
 WriteMakefile(
   NAME         => 'Data::CompactReadonly',
-    META_MERGE => {
+    META_ADD => {
         license => 'open_source',
+},
+META_MERGE => {
         resources => {
             repository => 'https://github.com/DrHyde/perl-modules-Data-CompactReadonly',
             bugtracker => 'https://github.com/DrHyde/perl-modules-Data-CompactReadonly/issues'
